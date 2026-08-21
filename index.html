@@ -13,7 +13,119 @@
 </head>
 
 <body>
+<!-- =====================================================
+     PANTALLA DE INICIO DE SESIÓN
+     ===================================================== -->
 
+<section id="pantallaLogin" class="pantalla-login">
+
+    <div class="login-card">
+
+        <div class="login-icon">
+            🔐
+        </div>
+
+        <h1>
+            Iniciar sesión
+        </h1>
+
+        <p class="login-subtitulo">
+            Control de Miembros y Asistencia
+        </p>
+
+        <form id="formLogin">
+
+            <div class="login-campo">
+
+                <label for="loginEmail">
+                    Correo electrónico
+                </label>
+
+                <input
+                    type="email"
+                    id="loginEmail"
+                    placeholder="correo@ejemplo.com"
+                    autocomplete="email"
+                    required
+                >
+
+            </div>
+
+
+            <div class="login-campo">
+
+                <label for="loginPassword">
+                    Contraseña
+                </label>
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Ingrese su contraseña"
+                    autocomplete="current-password"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                type="submit"
+                id="btnLogin"
+                class="btn-login"
+            >
+                🔐 Iniciar sesión
+            </button>
+
+        </form>
+
+
+        <div
+            id="mensajeLogin"
+            class="mensaje-login"
+        ></div>
+
+    </div>
+
+</section>
+
+
+<!-- =====================================================
+     INFORMACIÓN DEL USUARIO CONECTADO
+     ===================================================== -->
+
+<div
+    id="usuarioConectado"
+    class="usuario-conectado"
+    style="display:none;"
+>
+
+    <div>
+
+        👤
+        <strong id="nombreUsuario">
+            Usuario
+        </strong>
+
+        <span
+            id="rolUsuario"
+            class="rol-usuario"
+        >
+            Rol
+        </span>
+
+    </div>
+
+
+    <button
+        type="button"
+        id="btnCerrarSesion"
+        class="btn-cerrar-sesion"
+    >
+        🚪 Cerrar sesión
+    </button>
+
+</div>
 <header>
     <h1>Control de Miembros y Asistencia</h1>
     <p>Registro de miembros, asistencia y reportes</p>
