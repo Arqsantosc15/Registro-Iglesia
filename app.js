@@ -19,7 +19,587 @@ const supabaseClient =
         SUPABASE_URL,
         SUPABASE_KEY
     );
+// ==========================================================
+// AUTENTICACIÓN Y ROLES
+// ==========================================================
 
+let usuarioActual = null;
+let rolUsuarioActual = null;
+
+
+// ==========================================================
+// ELEMENTOS DEL LOGIN
+// ==========================================================
+
+let pantallaLogin;
+let formLogin;
+let loginEmail;
+let loginPassword;
+let btnLogin;
+let mensajeLogin;
+
+let usuarioConectado;
+let nombreUsuario;
+let rolUsuario;
+let btnCerrarSesion;
+
+
+// ==========================================================
+// INICIALIZAR AUTENTICACIÓN
+// ==========================================================
+
+async function inicializarAutenticacion() {
+
+    console.log("🔐 Iniciando sistema de autenticación...");
+
+
+    pantallaLogin =
+        document.getElementById(
+            "pantallaLogin"
+        );
+
+
+    formLogin =
+        document.getElementById(
+            "formLogin"
+        );
+
+
+    loginEmail =
+        document.getElementById(
+            "loginEmail"
+        );
+
+
+    loginPassword =
+        document.getElementById(
+            "loginPassword"
+        );
+
+
+    btnLogin =
+        document.getElementById(
+            "btnLogin"
+        );
+
+
+    mensajeLogin =
+        document.getElementById(
+            "mensajeLogin"
+        );
+
+
+    usuarioConectado =
+        document.getElementById(
+            "usuarioConectado"
+        );
+
+
+    nombreUsuario =
+        document.getElementById(
+            "nombreUsuario"
+        );
+
+
+    rolUsuario =
+        document.getElementById(
+            "rolUsuario"
+        );
+
+
+    btnCerrarSesion =
+        document.getElementById(
+            "btnCerrarSesion"
+        );
+
+
+    // ======================================================
+    // FORMULARIO LOGIN
+    // ======================================================
+
+    if (formLogin) {
+
+        formLogin.addEventListener(
+            "submit",
+            iniciarSesion
+        );
+
+    }
+
+
+    // ======================================================
+    // CERRAR SESIÓN
+    // ======================================================
+
+    if (btnCerrarSesion) {
+
+        btnCerrarSesion.addEventListener(
+            "click",
+            cerrarSesion
+        );
+
+    }
+
+
+    // ======================================================
+    // COMPROBAR SESIÓN EXISTENTE
+    // ======================================================
+
+    const resultado =
+        await supabaseClient.auth.getSession();
+
+
+    if (resultado.error) {
+
+        console.error(
+            "Error comprobando sesión:",
+            resultado.error
+        );
+
+        mostrarLogin();
+
+        return;
+
+    }
+
+
+    const session =
+        resultado.data.session;
+
+
+    if (session) {
+
+        console.log(
+            "✅ Sesión existente encontrada."
+        );
+
+        await cargarPerfilUsuario(
+            session.user
+        );
+
+    } else {
+
+        mostrarLogin();
+
+    }
+
+
+    // ======================================================
+    // ESCUCHAR CAMBIOS DE SESIÓN
+    // ======================================================
+
+    supabaseClient.auth.onAuthStateChange(
+        async function (
+            evento,
+            sessionActual
+        ) {
+
+            console.log(
+                "Cambio de autenticación:",
+                evento
+            );
+
+
+            if (
+                sessionActual &&
+                sessionActual.user
+            ) {
+
+                usuarioActual =
+                    sessionActual.user;
+
+            }
+
+        }
+    );
+
+}
+
+
+// ==========================================================
+// INICIAR SESIÓN
+// ==========================================================
+
+async function iniciarSesion(
+    event
+) {
+
+    event.preventDefault();
+
+
+    const email =
+        loginEmail.value
+            .trim();
+
+
+    const password =
+        loginPassword.value;
+
+
+    if (!email || !password) {
+
+        mostrarMensajeLogin(
+            "Por favor, introduzca el correo y la contraseña."
+        );
+
+        return;
+
+    }
+
+
+    btnLogin.disabled =
+        true;
+
+
+    btnLogin.textContent =
+        "⏳ Iniciando sesión...";
+
+
+    mostrarMensajeLogin(
+        ""
+    );
+
+
+    try {
+
+        const resultado =
+            await supabaseClient.auth.signInWithPassword({
+
+                email:
+                    email,
+
+                password:
+                    password
+
+            });
+
+
+        if (resultado.error) {
+
+            throw resultado.error;
+
+        }
+
+
+        console.log(
+            "✅ Inicio de sesión correcto."
+        );
+
+
+        await cargarPerfilUsuario(
+            resultado.data.user
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error iniciando sesión:",
+            error
+        );
+
+
+        mostrarMensajeLogin(
+            "❌ Correo o contraseña incorrectos."
+        );
+
+
+    } finally {
+
+        btnLogin.disabled =
+            false;
+
+
+        btnLogin.textContent =
+            "🔐 Iniciar sesión";
+
+    }
+
+}
+
+
+// ==========================================================
+// CARGAR PERFIL Y ROL
+// ==========================================================
+
+async function cargarPerfilUsuario(
+    usuario
+) {
+
+    if (!usuario) {
+
+        mostrarLogin();
+
+        return;
+
+    }
+
+
+    usuarioActual =
+        usuario;
+
+
+    console.log(
+        "Usuario autenticado:",
+        usuario.email
+    );
+
+
+    try {
+
+        const resultado =
+            await supabaseClient
+                .from("perfiles")
+                .select(
+                    "id, user_id, rol"
+                )
+                .eq(
+                    "user_id",
+                    usuario.id
+                )
+                .single();
+
+
+        if (resultado.error) {
+
+            throw resultado.error;
+
+        }
+
+
+        const perfil =
+            resultado.data;
+
+
+        if (!perfil) {
+
+            throw new Error(
+                "Este usuario no tiene un perfil asignado."
+            );
+
+        }
+
+
+        rolUsuarioActual =
+            perfil.rol;
+
+
+        console.log(
+            "👤 Rol:",
+            rolUsuarioActual
+        );
+
+
+        mostrarSistema();
+
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando perfil:",
+            error
+        );
+
+
+        await supabaseClient.auth.signOut();
+
+
+        mostrarLogin();
+
+
+        mostrarMensajeLogin(
+            "❌ Este usuario no tiene un rol configurado."
+        );
+
+    }
+
+}
+
+
+// ==========================================================
+// MOSTRAR LOGIN
+// ==========================================================
+
+function mostrarLogin() {
+
+    if (pantallaLogin) {
+
+        pantallaLogin.style.display =
+            "flex";
+
+    }
+
+
+    if (usuarioConectado) {
+
+        usuarioConectado.style.display =
+            "none";
+
+    }
+
+}
+
+
+// ==========================================================
+// MOSTRAR SISTEMA
+// ==========================================================
+
+function mostrarSistema() {
+
+    if (pantallaLogin) {
+
+        pantallaLogin.style.display =
+            "none";
+
+    }
+
+
+    if (usuarioConectado) {
+
+        usuarioConectado.style.display =
+            "flex";
+
+    }
+
+
+    if (nombreUsuario) {
+
+        nombreUsuario.textContent =
+            usuarioActual.email;
+
+    }
+
+
+    if (rolUsuario) {
+
+        const nombresRoles = {
+
+            admin:
+                "Administrador",
+
+            secretario:
+                "Secretario",
+
+            miembro:
+                "Miembro"
+
+        };
+
+
+        rolUsuario.textContent =
+            nombresRoles[
+                rolUsuarioActual
+            ] ||
+            rolUsuarioActual;
+
+    }
+
+
+    console.log(
+        "🚀 Sistema disponible para:",
+        rolUsuarioActual
+    );
+
+}
+
+
+// ==========================================================
+// MOSTRAR MENSAJE LOGIN
+// ==========================================================
+
+function mostrarMensajeLogin(
+    mensaje
+) {
+
+    if (!mensajeLogin) {
+
+        return;
+
+    }
+
+
+    mensajeLogin.textContent =
+        mensaje;
+
+}
+
+
+// ==========================================================
+// CERRAR SESIÓN
+// ==========================================================
+
+async function cerrarSesion() {
+
+    const confirmar =
+        confirm(
+            "¿Desea cerrar la sesión?"
+        );
+
+
+    if (!confirmar) {
+
+        return;
+
+    }
+
+
+    try {
+
+        const resultado =
+            await supabaseClient.auth.signOut();
+
+
+        if (resultado.error) {
+
+            throw resultado.error;
+
+        }
+
+
+        usuarioActual =
+            null;
+
+
+        rolUsuarioActual =
+            null;
+
+
+        mostrarLogin();
+
+
+        if (formLogin) {
+
+            formLogin.reset();
+
+        }
+
+
+        mostrarMensajeLogin(
+            ""
+        );
+
+
+        console.log(
+            "🚪 Sesión cerrada."
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Error cerrando sesión:",
+            error
+        );
+
+
+        alert(
+            "❌ No se pudo cerrar la sesión.\n\n" +
+            error.message
+        );
+
+    }
+
+}
 
 // ==========================================================
 // VARIABLES GENERALES
