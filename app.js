@@ -1,7 +1,6 @@
 // ==========================================================
 // CONTROL DE MIEMBROS Y ASISTENCIA
-// app.js - VERSIÓN COMPLETA CORREGIDA
-// PASOS 29 + 30 + 31
+// app.js - VERSIÓN COMPLETA, LIMPIA Y CORREGIDA
 // ==========================================================
 
 
@@ -15,7 +14,6 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
     "sb_publishable_npgkf0Z40ecE7deKI7hHiw_ntgm0CJJ";
 
-
 const supabaseClient =
     window.supabase.createClient(
         SUPABASE_URL,
@@ -24,10 +22,57 @@ const supabaseClient =
 
 
 // ==========================================================
-// CONTROL DE INICIALIZACIÓN
+// VARIABLES GENERALES
 // ==========================================================
 
-let aplicacionInicializada = false;
+// ------------------------------
+// MIEMBROS
+// ------------------------------
+
+let memberForm;
+let listaMiembros;
+let buscar;
+let fotoInput;
+let preview;
+
+
+// ------------------------------
+// MODAL EDITAR
+// ------------------------------
+
+let modalEditar;
+let btnCerrarModal;
+let btnCancelarEdicion;
+let btnGuardarEdicion;
+
+let editarId;
+let editarNombre;
+let editarTelefono;
+let editarMinisterio;
+let editarFoto;
+let editarPreview;
+let formEditarMiembro;
+
+
+// ------------------------------
+// ASISTENCIA
+// ------------------------------
+
+let fechaAsistencia;
+let servicioAsistencia;
+let btnCargarAsistencia;
+let btnGuardarAsistencia;
+let listaAsistencia;
+
+
+// ------------------------------
+// REPORTE
+// ------------------------------
+
+let mesReporte;
+let btnVerReporte;
+let resultadoReporte;
+let resumenReporte;
 
 
 // ==========================================================
@@ -36,17 +81,9 @@ let aplicacionInicializada = false;
 
 function iniciarAplicacion() {
 
-    if (aplicacionInicializada) {
-        return;
-    }
-
-    aplicacionInicializada = true;
-
-
     console.log(
         "✅ Aplicación iniciada correctamente."
     );
-
 
     inicializarMiembros();
 
@@ -60,37 +97,6 @@ function iniciarAplicacion() {
 
 
 // ==========================================================
-// INICIALIZAR CUANDO EL HTML ESTÉ LISTO
-// ==========================================================
-
-if (
-    document.readyState === "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        iniciarAplicacion
-    );
-
-} else {
-
-    iniciarAplicacion();
-
-}
-
-
-// ==========================================================
-// ELEMENTOS - MIEMBROS
-// ==========================================================
-
-let memberForm;
-let listaMiembros;
-let buscar;
-let fotoInput;
-let preview;
-
-
-// ==========================================================
 // INICIALIZAR MIEMBROS
 // ==========================================================
 
@@ -101,24 +107,20 @@ function inicializarMiembros() {
             "memberForm"
         );
 
-
     listaMiembros =
         document.getElementById(
             "listaMiembros"
         );
-
 
     buscar =
         document.getElementById(
             "buscar"
         );
 
-
     fotoInput =
         document.getElementById(
             "foto"
         );
-
 
     preview =
         document.getElementById(
@@ -126,9 +128,9 @@ function inicializarMiembros() {
         );
 
 
-    // ------------------------------------------
+    // ------------------------------
     // VISTA PREVIA FOTO
-    // ------------------------------------------
+    // ------------------------------
 
     if (fotoInput) {
 
@@ -140,9 +142,9 @@ function inicializarMiembros() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // GUARDAR MIEMBRO
-    // ------------------------------------------
+    // ------------------------------
 
     if (memberForm) {
 
@@ -154,9 +156,9 @@ function inicializarMiembros() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // BUSCAR
-    // ------------------------------------------
+    // ------------------------------
 
     if (buscar) {
 
@@ -274,9 +276,9 @@ async function guardarMiembro(event) {
                 : null;
 
 
-        // ------------------------------------------
+        // ------------------------------
         // DÍAS
-        // ------------------------------------------
+        // ------------------------------
 
         const diasSeleccionados = [];
 
@@ -296,9 +298,9 @@ async function guardarMiembro(event) {
             );
 
 
-        // ------------------------------------------
+        // ------------------------------
         // VALIDACIONES
-        // ------------------------------------------
+        // ------------------------------
 
         if (!nombre) {
 
@@ -332,9 +334,9 @@ async function guardarMiembro(event) {
         }
 
 
-        // ------------------------------------------
+        // ------------------------------
         // FOTO
-        // ------------------------------------------
+        // ------------------------------
 
         let fotoUrl = null;
 
@@ -391,9 +393,9 @@ async function guardarMiembro(event) {
         }
 
 
-        // ------------------------------------------
-        // DATOS
-        // ------------------------------------------
+        // ------------------------------
+        // DATOS DEL MIEMBRO
+        // ------------------------------
 
         const datosMiembro = {
 
@@ -450,9 +452,9 @@ async function guardarMiembro(event) {
         };
 
 
-        // ------------------------------------------
+        // ------------------------------
         // INSERTAR
-        // ------------------------------------------
+        // ------------------------------
 
         const resultado =
             await supabaseClient
@@ -549,7 +551,9 @@ function obtenerExtension(
 async function cargarMiembros() {
 
     if (!listaMiembros) {
+
         return;
+
     }
 
 
@@ -596,7 +600,15 @@ async function cargarMiembros() {
 
 
         listaMiembros.innerHTML =
-            '<p class="mensaje">❌ No se pudieron cargar los miembros.</p>';
+            `
+            <p class="mensaje">
+                ❌ No se pudieron cargar los miembros.
+                <br><br>
+                ${escaparHTML(
+                    error.message
+                )}
+            </p>
+            `;
 
     }
 
@@ -612,7 +624,9 @@ function mostrarMiembros(
 ) {
 
     if (!listaMiembros) {
+
         return;
+
     }
 
 
@@ -655,9 +669,9 @@ function mostrarMiembros(
                 "miembro-card";
 
 
-            // --------------------------------------
+            // ------------------------------
             // FOTO
-            // --------------------------------------
+            // ------------------------------
 
             let fotoHTML = "";
 
@@ -666,8 +680,12 @@ function mostrarMiembros(
 
                 fotoHTML = `
                     <img
-                        src="${miembro.foto_url}"
-                        alt="Foto de ${escaparHTML(miembro.nombre)}"
+                        src="${escaparHTML(
+                            miembro.foto_url
+                        )}"
+                        alt="Foto de ${escaparHTML(
+                            miembro.nombre
+                        )}"
                         class="miembro-foto"
                     >
                 `;
@@ -683,9 +701,9 @@ function mostrarMiembros(
             }
 
 
-            // --------------------------------------
+            // ------------------------------
             // TARJETA
-            // --------------------------------------
+            // ------------------------------
 
             tarjeta.innerHTML = `
 
@@ -700,21 +718,24 @@ function mostrarMiembros(
                     </h3>
 
                     <p>
-                        ⛪ ${escaparHTML(
+                        ⛪
+                        ${escaparHTML(
                             miembro.ministerio ||
                             "Sin ministerio"
                         )}
                     </p>
 
                     <p>
-                        📞 ${escaparHTML(
+                        📞
+                        ${escaparHTML(
                             miembro.telefono ||
                             "Sin teléfono"
                         )}
                     </p>
 
                     <p>
-                        📅 ${escaparHTML(
+                        📅
+                        ${escaparHTML(
                             dias ||
                             "Sin días registrados"
                         )}
@@ -786,22 +807,27 @@ function escaparHTML(valor) {
 
 
     return String(valor)
+
         .replace(
             /&/g,
             "&amp;"
         )
+
         .replace(
             /</g,
             "&lt;"
         )
+
         .replace(
             />/g,
             "&gt;"
         )
+
         .replace(
             /"/g,
             "&quot;"
         )
+
         .replace(
             /'/g,
             "&#039;"
@@ -821,32 +847,67 @@ function obtenerDias(
     const dias = [];
 
 
-    if (miembro.lunes)
-        dias.push("Lunes");
+    if (miembro.lunes) {
+
+        dias.push(
+            "Lunes"
+        );
+
+    }
 
 
-    if (miembro.martes)
-        dias.push("Martes");
+    if (miembro.martes) {
+
+        dias.push(
+            "Martes"
+        );
+
+    }
 
 
-    if (miembro.miercoles)
-        dias.push("Miércoles");
+    if (miembro.miercoles) {
+
+        dias.push(
+            "Miércoles"
+        );
+
+    }
 
 
-    if (miembro.jueves)
-        dias.push("Jueves");
+    if (miembro.jueves) {
+
+        dias.push(
+            "Jueves"
+        );
+
+    }
 
 
-    if (miembro.viernes)
-        dias.push("Viernes");
+    if (miembro.viernes) {
+
+        dias.push(
+            "Viernes"
+        );
+
+    }
 
 
-    if (miembro.sabado)
-        dias.push("Sábado");
+    if (miembro.sabado) {
+
+        dias.push(
+            "Sábado"
+        );
+
+    }
 
 
-    if (miembro.domingo)
-        dias.push("Domingo");
+    if (miembro.domingo) {
+
+        dias.push(
+            "Domingo"
+        );
+
+    }
 
 
     return dias.join(
@@ -863,12 +924,15 @@ function obtenerDias(
 async function buscarMiembros() {
 
     if (!buscar) {
+
         return;
+
     }
 
 
     const texto =
-        buscar.value.trim();
+        buscar.value
+            .trim();
 
 
     if (!texto) {
@@ -927,24 +991,7 @@ async function buscarMiembros() {
 
 
 // ==========================================================
-// MODAL EDITAR MIEMBRO
-// ==========================================================
-
-let modalEditar;
-let btnCerrarModal;
-let btnCancelarEdicion;
-let btnGuardarEdicion;
-let editarId;
-let editarNombre;
-let editarTelefono;
-let editarMinisterio;
-let editarFoto;
-let editarPreview;
-let formEditarMiembro;
-
-
-// ==========================================================
-// INICIALIZAR MODAL
+// MODAL EDITAR
 // ==========================================================
 
 function inicializarModalEditar() {
@@ -1015,9 +1062,9 @@ function inicializarModalEditar() {
         );
 
 
-    // ------------------------------------------
+    // ------------------------------
     // CERRAR
-    // ------------------------------------------
+    // ------------------------------
 
     if (btnCerrarModal) {
 
@@ -1029,10 +1076,6 @@ function inicializarModalEditar() {
     }
 
 
-    // ------------------------------------------
-    // CANCELAR
-    // ------------------------------------------
-
     if (btnCancelarEdicion) {
 
         btnCancelarEdicion.addEventListener(
@@ -1043,9 +1086,9 @@ function inicializarModalEditar() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // FOTO
-    // ------------------------------------------
+    // ------------------------------
 
     if (editarFoto) {
 
@@ -1057,9 +1100,9 @@ function inicializarModalEditar() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // FORMULARIO
-    // ------------------------------------------
+    // ------------------------------
 
     if (formEditarMiembro) {
 
@@ -1071,9 +1114,9 @@ function inicializarModalEditar() {
     }
 
 
-    // ------------------------------------------
-    // CLIC AFUERA
-    // ------------------------------------------
+    // ------------------------------
+    // CLIC FUERA
+    // ------------------------------
 
     if (modalEditar) {
 
@@ -1153,9 +1196,9 @@ async function abrirModalEditar(
             miembro.telefono || "";
 
 
-        // ------------------------------------------
+        // ------------------------------
         // MINISTERIO
-        // ------------------------------------------
+        // ------------------------------
 
         const ministerioOriginal =
             document.getElementById(
@@ -1178,9 +1221,9 @@ async function abrirModalEditar(
             miembro.ministerio || "";
 
 
-        // ------------------------------------------
+        // ------------------------------
         // DÍAS
-        // ------------------------------------------
+        // ------------------------------
 
         document
             .querySelectorAll(
@@ -1198,15 +1241,22 @@ async function abrirModalEditar(
             );
 
 
-        // ------------------------------------------
+        // ------------------------------
         // FOTO
-        // ------------------------------------------
+        // ------------------------------
 
-        editarFoto.value =
-            "";
+        if (editarFoto) {
+
+            editarFoto.value =
+                "";
+
+        }
 
 
-        if (miembro.foto_url) {
+        if (
+            miembro.foto_url &&
+            editarPreview
+        ) {
 
             editarPreview.src =
                 miembro.foto_url;
@@ -1214,7 +1264,7 @@ async function abrirModalEditar(
             editarPreview.style.display =
                 "block";
 
-        } else {
+        } else if (editarPreview) {
 
             editarPreview.src =
                 "";
@@ -1225,13 +1275,17 @@ async function abrirModalEditar(
         }
 
 
-        // ------------------------------------------
-        // MOSTRAR
-        // ------------------------------------------
+        // ------------------------------
+        // MOSTRAR MODAL
+        // ------------------------------
 
-        modalEditar.classList.add(
-            "mostrar"
-        );
+        if (modalEditar) {
+
+            modalEditar.classList.add(
+                "mostrar"
+            );
+
+        }
 
 
         document.body.classList.add(
@@ -1264,7 +1318,9 @@ async function abrirModalEditar(
 function cerrarModalEditar() {
 
     if (!modalEditar) {
+
         return;
+
     }
 
 
@@ -1304,15 +1360,24 @@ function cerrarModalEditar() {
 
 function vistaPreviaFotoEditar() {
 
+    if (
+        !editarFoto ||
+        !editarPreview
+    ) {
+
+        return;
+
+    }
+
+
     const archivo =
-        editarFoto &&
-        editarFoto.files
-            ? editarFoto.files[0]
-            : null;
+        editarFoto.files[0];
 
 
     if (!archivo) {
+
         return;
+
     }
 
 
@@ -1333,7 +1398,7 @@ function vistaPreviaFotoEditar() {
 
 
 // ==========================================================
-// GUARDAR CAMBIOS MIEMBRO
+// GUARDAR CAMBIOS DEL MIEMBRO
 // ==========================================================
 
 async function guardarCambiosMiembro(
@@ -1348,11 +1413,13 @@ async function guardarCambiosMiembro(
 
 
     const nombre =
-        editarNombre.value.trim();
+        editarNombre.value
+            .trim();
 
 
     const telefono =
-        editarTelefono.value.trim();
+        editarTelefono.value
+            .trim();
 
 
     const ministerio =
@@ -1366,9 +1433,9 @@ async function guardarCambiosMiembro(
             : null;
 
 
-    // ------------------------------------------
+    // ------------------------------
     // VALIDACIONES
-    // ------------------------------------------
+    // ------------------------------
 
     if (!id) {
 
@@ -1403,32 +1470,25 @@ async function guardarCambiosMiembro(
     }
 
 
-    if (!btnGuardarEdicion) {
+    if (btnGuardarEdicion) {
 
-        alert(
-            "No se encontró el botón de guardar."
-        );
+        btnGuardarEdicion.disabled =
+            true;
 
-        return;
+        btnGuardarEdicion.textContent =
+            "⏳ Guardando...";
 
     }
 
 
-    btnGuardarEdicion.disabled =
-        true;
-
-
-    btnGuardarEdicion.textContent =
-        "⏳ Guardando...";
-
-
     try {
 
-        // --------------------------------------
+        // ------------------------------
         // DÍAS
-        // --------------------------------------
+        // ------------------------------
 
-        const diasSeleccionados = [];
+        const diasSeleccionados =
+            [];
 
 
         document
@@ -1446,9 +1506,9 @@ async function guardarCambiosMiembro(
             );
 
 
-        // --------------------------------------
+        // ------------------------------
         // DATOS
-        // --------------------------------------
+        // ------------------------------
 
         const datosActualizar = {
 
@@ -1499,9 +1559,9 @@ async function guardarCambiosMiembro(
         };
 
 
-        // --------------------------------------
+        // ------------------------------
         // FOTO NUEVA
-        // --------------------------------------
+        // ------------------------------
 
         if (foto) {
 
@@ -1556,9 +1616,9 @@ async function guardarCambiosMiembro(
         }
 
 
-        // --------------------------------------
+        // ------------------------------
         // ACTUALIZAR
-        // --------------------------------------
+        // ------------------------------
 
         const resultado =
             await supabaseClient
@@ -1590,9 +1650,9 @@ async function guardarCambiosMiembro(
         await cargarMiembros();
 
 
-        // --------------------------------------
+        // ------------------------------
         // ACTUALIZAR ASISTENCIA
-        // --------------------------------------
+        // ------------------------------
 
         if (
             typeof cargarListaAsistencia ===
@@ -1613,6 +1673,20 @@ async function guardarCambiosMiembro(
         }
 
 
+        // ------------------------------
+        // ACTUALIZAR REPORTE
+        // ------------------------------
+
+        if (
+            mesReporte &&
+            mesReporte.value
+        ) {
+
+            await cargarReporte();
+
+        }
+
+
     } catch (error) {
 
         console.error(
@@ -1629,27 +1703,19 @@ async function guardarCambiosMiembro(
 
     } finally {
 
-        btnGuardarEdicion.disabled =
-            false;
+        if (btnGuardarEdicion) {
 
+            btnGuardarEdicion.disabled =
+                false;
 
-        btnGuardarEdicion.textContent =
-            "💾 Guardar cambios";
+            btnGuardarEdicion.textContent =
+                "💾 Guardar cambios";
+
+        }
 
     }
 
 }
-
-
-// ==========================================================
-// ASISTENCIA
-// ==========================================================
-
-let fechaAsistencia;
-let servicioAsistencia;
-let btnCargarAsistencia;
-let btnGuardarAsistencia;
-let listaAsistencia;
 
 
 // ==========================================================
@@ -1688,9 +1754,9 @@ function inicializarAsistencia() {
         );
 
 
-    // ------------------------------------------
+    // ------------------------------
     // FECHA DE HOY
-    // ------------------------------------------
+    // ------------------------------
 
     if (fechaAsistencia) {
 
@@ -1700,9 +1766,9 @@ function inicializarAsistencia() {
     }
 
 
-    // ------------------------------------------
-    // BOTÓN CARGAR
-    // ------------------------------------------
+    // ------------------------------
+    // CARGAR
+    // ------------------------------
 
     if (btnCargarAsistencia) {
 
@@ -1714,9 +1780,9 @@ function inicializarAsistencia() {
     }
 
 
-    // ------------------------------------------
-    // BOTÓN GUARDAR
-    // ------------------------------------------
+    // ------------------------------
+    // GUARDAR
+    // ------------------------------
 
     if (btnGuardarAsistencia) {
 
@@ -1731,7 +1797,7 @@ function inicializarAsistencia() {
 
 
 // ==========================================================
-// FECHA HOY
+// FECHA DE HOY
 // ==========================================================
 
 function fechaHoy() {
@@ -1791,17 +1857,11 @@ function obtenerDiaDeFecha(
     const dias = [
 
         "domingo",
-
         "lunes",
-
         "martes",
-
         "miercoles",
-
         "jueves",
-
         "viernes",
-
         "sabado"
 
     ];
@@ -1821,7 +1881,9 @@ function obtenerDiaDeFecha(
 function obtenerDiaDelServicio() {
 
     if (!servicioAsistencia) {
+
         return "";
+
     }
 
 
@@ -1832,7 +1894,9 @@ function obtenerDiaDelServicio() {
 
 
     if (!opcion) {
+
         return "";
+
     }
 
 
@@ -1871,17 +1935,11 @@ function obtenerDiaDelServicio() {
     const dias = [
 
         "domingo",
-
         "lunes",
-
         "martes",
-
         "miercoles",
-
         "jueves",
-
         "viernes",
-
         "sabado"
 
     ];
@@ -1954,7 +2012,7 @@ function validarFechaServicio() {
 
 
     console.log(
-        "VALIDACIÓN FECHA/SERVICIO:",
+        "Validación fecha/servicio:",
         {
             fecha:
                 fecha,
@@ -1972,12 +2030,20 @@ function validarFechaServicio() {
     );
 
 
+    // ------------------------------
+    // SERVICIO SIN DÍA
+    // ------------------------------
+
     if (!diaServicio) {
 
         return true;
 
     }
 
+
+    // ------------------------------
+    // NO COINCIDE
+    // ------------------------------
 
     if (
         diaFecha !==
@@ -2054,9 +2120,9 @@ async function cargarListaAsistencia() {
         servicioAsistencia.value;
 
 
-    // ------------------------------------------
-    // VALIDACIÓN
-    // ------------------------------------------
+    // ------------------------------
+    // VALIDAR FECHA
+    // ------------------------------
 
     if (!fecha) {
 
@@ -2069,6 +2135,10 @@ async function cargarListaAsistencia() {
     }
 
 
+    // ------------------------------
+    // VALIDAR SERVICIO
+    // ------------------------------
+
     if (!servicio) {
 
         alert(
@@ -2079,6 +2149,10 @@ async function cargarListaAsistencia() {
 
     }
 
+
+    // ------------------------------
+    // VALIDAR DÍA
+    // ------------------------------
 
     if (
         !validarFechaServicio()
@@ -2095,9 +2169,9 @@ async function cargarListaAsistencia() {
 
     try {
 
-        // --------------------------------------
+        // ==================================================
         // MIEMBROS
-        // --------------------------------------
+        // ==================================================
 
         const resultadoMiembros =
             await supabaseClient
@@ -2133,16 +2207,20 @@ async function cargarListaAsistencia() {
         ) {
 
             listaAsistencia.innerHTML =
-                '<p class="sin-miembros">No hay miembros registrados.</p>';
+                `
+                <p class="sin-miembros">
+                    No hay miembros registrados.
+                </p>
+                `;
 
             return;
 
         }
 
 
-        // --------------------------------------
+        // ==================================================
         // ASISTENCIAS EXISTENTES
-        // --------------------------------------
+        // ==================================================
 
         const resultadoAsistencias =
             await supabaseClient
@@ -2173,33 +2251,36 @@ async function cargarListaAsistencia() {
             resultadoAsistencias.data || [];
 
 
+        // ==================================================
+        // CONJUNTO DE ASISTENTES
+        // ==================================================
+
         const idsAsistentes =
-            new Set(
-                asistenciasExistentes
-                    .filter(
-                        function (registro) {
-
-                            return (
-                                registro.asistio === true
-                            );
-
-                        }
-                    )
-                    .map(
-                        function (registro) {
-
-                            return Number(
-                                registro.miembro_id
-                            );
-
-                        }
-                    )
-            );
+            new Set();
 
 
-        // --------------------------------------
-        // DÍA
-        // --------------------------------------
+        asistenciasExistentes.forEach(
+            function (registro) {
+
+                if (
+                    registro.asistio === true
+                ) {
+
+                    idsAsistentes.add(
+                        Number(
+                            registro.miembro_id
+                        )
+                    );
+
+                }
+
+            }
+        );
+
+
+        // ==================================================
+        // DÍA DE LA SEMANA
+        // ==================================================
 
         const nombreDia =
             obtenerDiaDeFecha(
@@ -2207,9 +2288,9 @@ async function cargarListaAsistencia() {
             );
 
 
-        // --------------------------------------
+        // ==================================================
         // ORDENAR
-        // --------------------------------------
+        // ==================================================
 
         miembros.sort(
             function (a, b) {
@@ -2247,9 +2328,9 @@ async function cargarListaAsistencia() {
         );
 
 
-        // --------------------------------------
+        // ==================================================
         // MOSTRAR
-        // --------------------------------------
+        // ==================================================
 
         listaAsistencia.innerHTML =
             "";
@@ -2291,7 +2372,9 @@ async function cargarListaAsistencia() {
 
                     fotoHTML = `
                         <img
-                            src="${miembro.foto_url}"
+                            src="${escaparHTML(
+                                miembro.foto_url
+                            )}"
                             class="asistencia-foto"
                             alt="Foto"
                         >
@@ -2402,7 +2485,7 @@ async function cargarListaAsistencia() {
 
 // ==========================================================
 // GUARDAR ASISTENCIA
-// PASO 31 - VERSIÓN CORREGIDA
+// PASO 31
 // ==========================================================
 
 async function guardarAsistencia() {
@@ -2426,9 +2509,9 @@ async function guardarAsistencia() {
         servicioAsistencia.value;
 
 
-    // ------------------------------------------
+    // ------------------------------
     // VALIDACIONES
-    // ------------------------------------------
+    // ------------------------------
 
     if (!fecha) {
 
@@ -2461,9 +2544,9 @@ async function guardarAsistencia() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // CHECKBOXES
-    // ------------------------------------------
+    // ------------------------------
 
     const checkboxes =
         document.querySelectorAll(
@@ -2484,9 +2567,9 @@ async function guardarAsistencia() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // BOTÓN
-    // ------------------------------------------
+    // ------------------------------
 
     btnGuardarAsistencia.disabled =
         true;
@@ -2498,9 +2581,9 @@ async function guardarAsistencia() {
 
     try {
 
-        // --------------------------------------
+        // ==================================================
         // CREAR REGISTROS
-        // --------------------------------------
+        // ==================================================
 
         const registros = [];
 
@@ -2512,6 +2595,15 @@ async function guardarAsistencia() {
                     Number(
                         checkbox.dataset.miembroId
                     );
+
+
+                if (
+                    !miembroId
+                ) {
+
+                    return;
+
+                }
 
 
                 registros.push({
@@ -2534,10 +2626,6 @@ async function guardarAsistencia() {
         );
 
 
-        // --------------------------------------
-        // VERIFICAR
-        // --------------------------------------
-
         if (
             registros.length === 0
         ) {
@@ -2551,30 +2639,23 @@ async function guardarAsistencia() {
         }
 
 
-        console.log(
-            "Guardando asistencia:",
-            registros
-        );
-
-
-        // --------------------------------------
-        // UPSERT
-        // --------------------------------------
+        // ==================================================
+        // GUARDAR / ACTUALIZAR
+        // ==================================================
         //
-        // La combinación:
+        // La restricción creada en el PASO 30
+        // permite usar:
         //
-        // miembro_id
-        // fecha
-        // servicio
+        // miembro_id + fecha + servicio
         //
-        // es única en Supabase.
+        // como combinación única.
         //
-        // Si existe:
-        //     actualiza
+        // upsert:
         //
-        // Si no existe:
-        //     crea
-        // --------------------------------------
+        // - crea si no existe
+        // - actualiza si existe
+        //
+        // ==================================================
 
         const resultado =
             await supabaseClient
@@ -2597,9 +2678,9 @@ async function guardarAsistencia() {
         }
 
 
-        // --------------------------------------
+        // ==================================================
         // CONTAR ASISTENTES
-        // --------------------------------------
+        // ==================================================
 
         const cantidadAsistentes =
             registros.filter(
@@ -2613,14 +2694,14 @@ async function guardarAsistencia() {
             ).length;
 
 
-        const cantidadAusentes =
+        const cantidadNoAsistieron =
             registros.length -
             cantidadAsistentes;
 
 
-        // --------------------------------------
+        // ==================================================
         // MENSAJE
-        // --------------------------------------
+        // ==================================================
 
         alert(
 
@@ -2647,21 +2728,21 @@ async function guardarAsistencia() {
             "\n" +
 
             "❌ No asistieron: " +
-            cantidadAusentes
+            cantidadNoAsistieron
 
         );
 
 
-        // --------------------------------------
-        // RECARGAR LISTA
-        // --------------------------------------
+        // ==================================================
+        // RECARGAR ASISTENCIA
+        // ==================================================
 
         await cargarListaAsistencia();
 
 
-        // --------------------------------------
+        // ==================================================
         // ACTUALIZAR REPORTE
-        // --------------------------------------
+        // ==================================================
 
         if (
             mesReporte &&
@@ -2705,16 +2786,6 @@ async function guardarAsistencia() {
 
 
 // ==========================================================
-// REPORTE MENSUAL
-// ==========================================================
-
-let mesReporte;
-let btnVerReporte;
-let resultadoReporte;
-let resumenReporte;
-
-
-// ==========================================================
 // INICIALIZAR REPORTE
 // ==========================================================
 
@@ -2744,9 +2815,9 @@ function inicializarReporte() {
         );
 
 
-    // ------------------------------------------
+    // ------------------------------
     // MES ACTUAL
-    // ------------------------------------------
+    // ------------------------------
 
     if (mesReporte) {
 
@@ -2756,9 +2827,9 @@ function inicializarReporte() {
     }
 
 
-    // ------------------------------------------
+    // ------------------------------
     // BOTÓN
-    // ------------------------------------------
+    // ------------------------------
 
     if (btnVerReporte) {
 
@@ -2768,11 +2839,6 @@ function inicializarReporte() {
         );
 
     }
-
-
-    console.log(
-        "✅ Reporte inicializado correctamente."
-    );
 
 }
 
@@ -2810,21 +2876,18 @@ function mesActual() {
 
 
 // ==========================================================
-// PASO 29
-// CARGAR REPORTE MENSUAL CORREGIDO
+// REPORTE MENSUAL
+// PASO 29 - VERSIÓN CORREGIDA
 // ==========================================================
 
 async function cargarReporte() {
 
     if (
         !mesReporte ||
+        !btnVerReporte ||
         !resultadoReporte ||
         !resumenReporte
     ) {
-
-        console.error(
-            "❌ Elementos del reporte no encontrados."
-        );
 
         return;
 
@@ -2846,20 +2909,20 @@ async function cargarReporte() {
     }
 
 
-    if (btnVerReporte) {
-
-        btnVerReporte.disabled =
-            true;
+    btnVerReporte.disabled =
+        true;
 
 
-        btnVerReporte.textContent =
-            "⏳ Cargando...";
-
-    }
+    btnVerReporte.textContent =
+        "⏳ Cargando...";
 
 
     resultadoReporte.innerHTML =
-        '<p class="mensaje">⏳ Generando reporte...</p>';
+        `
+        <p class="mensaje">
+            ⏳ Generando reporte...
+        </p>
+        `;
 
 
     resumenReporte.innerHTML =
@@ -2913,7 +2976,7 @@ async function cargarReporte() {
 
 
         console.log(
-            "PASO 29 - Rango:",
+            "Reporte mensual:",
             {
                 mes:
                     mes,
@@ -2923,12 +2986,13 @@ async function cargarReporte() {
 
                 fin:
                     finMes
+
             }
         );
 
 
         // ==================================================
-        // 2. MIEMBROS ACTIVOS
+        // 2. CARGAR MIEMBROS ACTIVOS
         // ==================================================
 
         const resultadoMiembros =
@@ -2961,7 +3025,7 @@ async function cargarReporte() {
 
 
         // ==================================================
-        // 3. ASISTENCIAS DEL MES
+        // 3. CARGAR ASISTENCIAS DEL MES
         // ==================================================
 
         const resultadoAsistencias =
@@ -3000,9 +3064,17 @@ async function cargarReporte() {
 
 
         // ==================================================
-        // 4. REUNIONES ÚNICAS
+        // 4. IDENTIFICAR REUNIONES ÚNICAS
+        // ==================================================
         //
-        // Una reunión existe aunque todos tengan FALSE.
+        // IMPORTANTE:
+        //
+        // Una reunión existe si hay registros de asistencia,
+        // aunque todos tengan asistio = false.
+        //
+        // Esto permite que una reunión donde nadie asistió
+        // siga apareciendo en el reporte.
+        //
         // ==================================================
 
         const reunionesMap =
@@ -3037,13 +3109,11 @@ async function cargarReporte() {
                     reunionesMap.set(
                         clave,
                         {
-
                             fecha:
                                 registro.fecha,
 
                             servicio:
                                 registro.servicio
-
                         }
                     );
 
@@ -3064,7 +3134,7 @@ async function cargarReporte() {
 
 
         // ==================================================
-        // 5. ASISTENCIAS REALES
+        // 5. CREAR SET DE ASISTENCIAS REALES
         // ==================================================
 
         const asistenciasReales =
@@ -3102,7 +3172,7 @@ async function cargarReporte() {
 
 
         // ==================================================
-        // 6. RESULTADO DE CADA MIEMBRO
+        // 6. CALCULAR CADA MIEMBRO
         // ==================================================
 
         const resultados =
@@ -3134,9 +3204,9 @@ async function cargarReporte() {
                                 );
 
 
-                            // ----------------------------------
+                            // ------------------------------
                             // ¿DEBÍA ASISTIR?
-                            // ----------------------------------
+                            // ------------------------------
 
                             const esperaba =
                                 miembro[dia] === true;
@@ -3152,9 +3222,9 @@ async function cargarReporte() {
                             reunionesEsperadas++;
 
 
-                            // ----------------------------------
+                            // ------------------------------
                             // ¿ASISTIÓ?
-                            // ----------------------------------
+                            // ------------------------------
 
                             const clave =
                                 Number(
@@ -3184,9 +3254,9 @@ async function cargarReporte() {
                     );
 
 
-                    // --------------------------------------
+                    // ==================================================
                     // PORCENTAJE
-                    // --------------------------------------
+                    // ==================================================
 
                     let porcentaje =
                         0;
@@ -3278,7 +3348,7 @@ async function cargarReporte() {
 
 
         // ==================================================
-        // 8. RESUMEN
+        // 8. MOSTRAR RESUMEN
         // ==================================================
 
         resumenReporte.innerHTML = `
@@ -3366,9 +3436,9 @@ async function cargarReporte() {
                     resultado.porcentaje;
 
 
-                // ------------------------------------------
+                // ------------------------------
                 // ESTADO
-                // ------------------------------------------
+                // ------------------------------
 
                 let clasePorcentaje =
                     "porcentaje-sin-datos";
@@ -3389,7 +3459,6 @@ async function cargarReporte() {
                     textoEstado =
                         "Sin reuniones esperadas";
 
-
                 } else if (
                     porcentaje >= 80
                 ) {
@@ -3397,14 +3466,11 @@ async function cargarReporte() {
                     clasePorcentaje =
                         "porcentaje-alto";
 
-
                     claseEstado =
                         "estado-alto";
 
-
                     textoEstado =
                         "Buena asistencia";
-
 
                 } else if (
                     porcentaje >= 50
@@ -3413,24 +3479,19 @@ async function cargarReporte() {
                     clasePorcentaje =
                         "porcentaje-medio";
 
-
                     claseEstado =
                         "estado-medio";
 
-
                     textoEstado =
                         "Asistencia regular";
-
 
                 } else {
 
                     clasePorcentaje =
                         "porcentaje-bajo";
 
-
                     claseEstado =
                         "estado-bajo";
-
 
                     textoEstado =
                         "Baja asistencia";
@@ -3438,9 +3499,9 @@ async function cargarReporte() {
                 }
 
 
-                // ------------------------------------------
+                // ==================================================
                 // TARJETA
-                // ------------------------------------------
+                // ==================================================
 
                 const tarjeta =
                     document.createElement(
@@ -3452,9 +3513,9 @@ async function cargarReporte() {
                     "reporte-miembro";
 
 
-                // ------------------------------------------
+                // ==================================================
                 // FOTO
-                // ------------------------------------------
+                // ==================================================
 
                 if (
                     miembro.foto_url
@@ -3463,7 +3524,9 @@ async function cargarReporte() {
                     tarjeta.innerHTML = `
 
                         <img
-                            src="${miembro.foto_url}"
+                            src="${escaparHTML(
+                                miembro.foto_url
+                            )}"
                             alt="Foto de ${escaparHTML(
                                 miembro.nombre
                             )}"
@@ -3494,9 +3557,9 @@ async function cargarReporte() {
                 }
 
 
-                // ------------------------------------------
+                // ==================================================
                 // INFORMACIÓN
-                // ------------------------------------------
+                // ==================================================
 
                 tarjeta.innerHTML += `
 
@@ -3586,13 +3649,12 @@ async function cargarReporte() {
 
 
         // ==================================================
-        // 11. CONSOLA
+        // CONSOLA
         // ==================================================
 
         console.log(
-            "PASO 29 - REPORTE GENERADO:",
+            "Reporte generado:",
             {
-
                 miembros:
                     totalMiembros,
 
@@ -3633,21 +3695,37 @@ async function cargarReporte() {
 
         `;
 
-
     } finally {
 
-        if (btnVerReporte) {
-
-            btnVerReporte.disabled =
-                false;
+        btnVerReporte.disabled =
+            false;
 
 
-            btnVerReporte.textContent =
-                "📊 Ver reporte";
-
-        }
+        btnVerReporte.textContent =
+            "📊 Ver reporte";
 
     }
+
+}
+
+
+// ==========================================================
+// INICIAR CUANDO CARGUE EL HTML
+// ==========================================================
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        iniciarAplicacion
+    );
+
+} else {
+
+    iniciarAplicacion();
 
 }
 
