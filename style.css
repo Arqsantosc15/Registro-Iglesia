@@ -1,0 +1,1189 @@
+/* =========================================================
+   CONTROL DE MIEMBROS Y ASISTENCIA
+   STYLE.CSS COMPLETO - PASO 26B
+========================================================= */
+
+
+/* =========================================================
+   REGLAS GENERALES
+========================================================= */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+    min-height: 100vh;
+    line-height: 1.4;
+}
+
+
+/* =========================================================
+   ENCABEZADO
+========================================================= */
+
+header {
+    background: #1f4e79;
+    color: white;
+    text-align: center;
+    padding: 22px 20px;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+header p {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+========================================================= */
+
+main {
+    width: 95%;
+    max-width: 1100px;
+    margin: 25px auto;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+
+    align-items: start;
+}
+
+
+/* =========================================================
+   TARJETAS PRINCIPALES
+========================================================= */
+
+.formulario,
+.miembros,
+.asistencia-contenedor,
+.reporte-contenedor {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+
+    box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.08);
+}
+
+
+/* =========================================================
+   TITULOS
+========================================================= */
+
+h2 {
+    color: #1f4e79;
+    margin-bottom: 18px;
+    font-size: 21px;
+}
+
+
+/* =========================================================
+   CAMPOS
+========================================================= */
+
+.campo {
+    margin-bottom: 15px;
+}
+
+.campo label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+    font-size: 14px;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="search"],
+input[type="date"],
+input[type="month"],
+select {
+    width: 100%;
+    padding: 10px;
+
+    border: 1px solid #ccc;
+    border-radius: 6px;
+
+    font-size: 14px;
+    background: white;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #1f4e79;
+    box-shadow: 0 0 0 2px rgba(31, 78, 121, 0.1);
+}
+
+
+/* =========================================================
+   INPUT FOTO
+========================================================= */
+
+input[type="file"] {
+    width: 100%;
+    padding: 8px;
+
+    border: 1px dashed #aaa;
+    border-radius: 6px;
+
+    background: #fafafa;
+    font-size: 13px;
+}
+
+
+/* =========================================================
+   PREVIEW FOTO NUEVO MIEMBRO
+========================================================= */
+
+#preview-container {
+    margin-top: 12px;
+    text-align: center;
+}
+
+#preview {
+    display: none;
+
+    width: 120px;
+    height: 120px;
+
+    object-fit: cover;
+    border-radius: 50%;
+
+    border: 4px solid #1f4e79;
+}
+
+
+/* =========================================================
+   DÍAS
+========================================================= */
+
+.dias {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.dias label {
+    background: #f1f4f7;
+
+    padding: 8px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.dias label:hover {
+    background: #e7edf2;
+}
+
+.dias input {
+    margin-right: 6px;
+}
+
+
+/* =========================================================
+   BOTÓN GUARDAR MIEMBRO
+========================================================= */
+
+.btn-guardar {
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #1f4e79;
+    color: white;
+
+    font-size: 15px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.btn-guardar:hover {
+    background: #163a5c;
+}
+
+
+/* =========================================================
+   BÚSQUEDA
+========================================================= */
+
+.busqueda {
+    margin-bottom: 15px;
+}
+
+
+/* =========================================================
+   LISTA DE MIEMBROS
+========================================================= */
+
+#listaMiembros {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mensaje {
+    text-align: center;
+    color: #777;
+    padding: 25px 10px;
+}
+
+
+/* =========================================================
+   TARJETA DE MIEMBRO
+========================================================= */
+
+.miembro-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+
+    padding: 10px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 10px;
+
+    background: white;
+}
+
+.miembro-foto {
+    width: 58px;
+    height: 58px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border: 2px solid #1f4e79;
+
+    flex-shrink: 0;
+}
+
+.miembro-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.miembro-info h3 {
+    margin-bottom: 3px;
+    color: #1f4e79;
+    font-size: 15px;
+}
+
+.miembro-info p {
+    margin: 2px 0;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   ASISTENCIA
+========================================================= */
+
+.asistencia {
+    width: 95%;
+    max-width: 1100px;
+
+    margin: 20px auto;
+}
+
+.subtitulo-asistencia {
+    color: #666;
+    margin-bottom: 18px;
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN ASISTENCIA
+========================================================= */
+
+.asistencia-config {
+    display: grid;
+
+    grid-template-columns: 1fr 2fr;
+
+    gap: 15px;
+
+    margin-bottom: 15px;
+}
+
+.asistencia-config .campo {
+    margin-bottom: 0;
+}
+
+
+/* =========================================================
+   BOTONES ASISTENCIA
+========================================================= */
+
+.btn-asistencia,
+.btn-guardar-asistencia {
+    border: none;
+
+    border-radius: 7px;
+
+    padding: 11px 16px;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.btn-asistencia {
+    background: #1f4e79;
+    margin-bottom: 15px;
+}
+
+.btn-asistencia:hover {
+    background: #163a5c;
+}
+
+.btn-guardar-asistencia {
+    background: #218739;
+
+    width: 100%;
+
+    margin-top: 15px;
+}
+
+.btn-guardar-asistencia:hover {
+    background: #17682b;
+}
+
+
+/* =========================================================
+   LISTA ASISTENCIA
+========================================================= */
+
+.lista-asistencia {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.asistencia-miembro {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    padding: 10px 12px;
+
+    background: #f1f4f7;
+
+    border-radius: 7px;
+
+    border: 1px solid #e1e5e8;
+
+    cursor: pointer;
+}
+
+.asistencia-miembro:hover {
+    background: #e8edf2;
+}
+
+.asistencia-miembro input {
+    width: 18px;
+    height: 18px;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+.asistencia-foto {
+    width: 50px;
+    height: 50px;
+
+    min-width: 50px;
+    min-height: 50px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border: 2px solid #1f4e79;
+}
+
+.asistencia-info {
+    flex: 1;
+}
+
+.asistencia-info strong {
+    display: block;
+
+    color: #1f4e79;
+
+    font-size: 14px;
+}
+
+.asistencia-info small {
+    color: #666;
+    display: block;
+    font-size: 12px;
+}
+
+.asistira-label {
+    font-weight: bold;
+
+    color: #218739;
+
+    margin-top: 3px;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   REPORTE
+========================================================= */
+
+.reporte {
+    width: 95%;
+    max-width: 1100px;
+
+    margin: 20px auto;
+}
+
+.subtitulo-reporte {
+    color: #666;
+
+    margin-bottom: 18px;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN REPORTE
+========================================================= */
+
+.reporte-config {
+    display: grid;
+
+    grid-template-columns: 1fr auto;
+
+    gap: 12px;
+
+    align-items: end;
+
+    margin-bottom: 20px;
+}
+
+.reporte-config .campo {
+    margin-bottom: 0;
+}
+
+.btn-reporte {
+    border: none;
+
+    border-radius: 7px;
+
+    padding: 11px 18px;
+
+    background: #1f4e79;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.btn-reporte:hover {
+    background: #163a5c;
+}
+
+
+/* =========================================================
+   RESUMEN REPORTE
+========================================================= */
+
+.resumen-reporte {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 20px;
+}
+
+.resumen-card {
+    padding: 15px;
+
+    border-radius: 8px;
+
+    background: #f1f4f7;
+
+    text-align: center;
+
+    border: 1px solid #e0e5e9;
+}
+
+.resumen-card .numero {
+    display: block;
+
+    font-size: 25px;
+
+    font-weight: bold;
+
+    color: #1f4e79;
+
+    margin-bottom: 4px;
+}
+
+.resumen-card .texto {
+    color: #666;
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   RESULTADO REPORTE
+========================================================= */
+
+.resultado-reporte {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+}
+
+.reporte-miembro {
+    display: grid;
+
+    grid-template-columns: 60px 1fr auto;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 12px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 8px;
+
+    background: white;
+}
+
+.reporte-foto {
+    width: 55px;
+    height: 55px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border: 2px solid #1f4e79;
+}
+
+.reporte-info h3 {
+    color: #1f4e79;
+
+    margin-bottom: 3px;
+
+    font-size: 15px;
+}
+
+.reporte-info p {
+    font-size: 12px;
+
+    margin: 2px 0;
+
+    color: #555;
+}
+
+.reporte-estadistica {
+    text-align: right;
+}
+
+.reporte-porcentaje {
+    font-size: 23px;
+
+    font-weight: bold;
+}
+
+.reporte-detalle {
+    font-size: 12px;
+
+    color: #666;
+
+    margin-top: 3px;
+}
+
+
+/* =========================================================
+   COLORES PORCENTAJE
+========================================================= */
+
+.porcentaje-alto {
+    color: #218739;
+}
+
+.porcentaje-medio {
+    color: #d68910;
+}
+
+.porcentaje-bajo {
+    color: #c0392b;
+}
+
+.porcentaje-sin-datos {
+    color: #777;
+}
+
+
+/* =========================================================
+   ESTADOS
+========================================================= */
+
+.estado-asistencia {
+    display: inline-block;
+
+    padding: 3px 7px;
+
+    border-radius: 5px;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+    margin-top: 4px;
+}
+
+.estado-alto {
+    background: #dff3e4;
+    color: #218739;
+}
+
+.estado-medio {
+    background: #fff0d5;
+    color: #a86400;
+}
+
+.estado-bajo {
+    background: #fde1df;
+    color: #c0392b;
+}
+
+.estado-sin-datos {
+    background: #eee;
+    color: #777;
+}
+
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+footer {
+    text-align: center;
+
+    color: #777;
+
+    padding: 25px 15px;
+
+    font-size: 12px;
+}
+
+
+/* =========================================================
+   =========================================================
+   MODAL EDITAR MIEMBRO
+   IMPORTANTE:
+   ESTE BLOQUE DEBE ESTAR FUERA DE CUALQUIER @MEDIA
+   =========================================================
+========================================================= */
+
+
+/* MODAL OCULTO */
+
+.modal {
+    display: none;
+
+    position: fixed;
+
+    z-index: 99999;
+
+    left: 0;
+    top: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.55);
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+
+/* MODAL VISIBLE */
+
+.modal.mostrar {
+    display: flex;
+}
+
+
+/* =========================================================
+   CONTENIDO DEL MODAL
+========================================================= */
+
+.modal-contenido {
+    background: white;
+
+    width: 100%;
+
+    max-width: 550px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    border-radius: 14px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 10px 40px rgba(0, 0, 0, 0.25);
+
+    animation: aparecerModal 0.2s ease;
+}
+
+
+/* ANIMACIÓN */
+
+@keyframes aparecerModal {
+
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* =========================================================
+   CABECERA DEL MODAL
+========================================================= */
+
+.modal-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+
+    color: #1f4e79;
+
+    font-size: 21px;
+}
+
+
+/* =========================================================
+   BOTÓN X
+========================================================= */
+
+.btn-cerrar {
+    width: 36px;
+    height: 36px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #f1f1f1;
+
+    color: #555;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    flex-shrink: 0;
+}
+
+.btn-cerrar:hover {
+    background: #ddd;
+}
+
+
+/* =========================================================
+   CAMPOS DEL MODAL
+========================================================= */
+
+#formEditarMiembro .campo {
+    margin-bottom: 15px;
+}
+
+#formEditarMiembro .campo label {
+    display: block;
+
+    font-weight: bold;
+
+    margin-bottom: 6px;
+
+    font-size: 14px;
+}
+
+#formEditarMiembro input[type="text"],
+#formEditarMiembro input[type="tel"],
+#formEditarMiembro select {
+    width: 100%;
+
+    padding: 10px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    font-size: 14px;
+
+    background: white;
+}
+
+#formEditarMiembro input[type="file"] {
+    width: 100%;
+
+    padding: 8px;
+
+    border: 1px dashed #aaa;
+
+    border-radius: 6px;
+
+    background: #fafafa;
+}
+
+
+/* =========================================================
+   PREVIEW FOTO EDITAR
+========================================================= */
+
+#editarPreviewContainer {
+    text-align: center;
+
+    margin: 15px 0;
+}
+
+#editarPreview {
+    display: none;
+
+    width: 120px;
+    height: 120px;
+
+    object-fit: cover;
+
+    border-radius: 50%;
+
+    border: 4px solid #1f4e79;
+
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   DÍAS DEL MODAL
+========================================================= */
+
+#formEditarMiembro .dias {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 8px;
+}
+
+#formEditarMiembro .dias label {
+    background: #f1f4f7;
+
+    padding: 9px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-weight: normal;
+
+    font-size: 13px;
+}
+
+#formEditarMiembro .dias label:hover {
+    background: #e7edf2;
+}
+
+#formEditarMiembro .dias input {
+    margin-right: 6px;
+}
+
+
+/* =========================================================
+   BOTONES DEL MODAL
+========================================================= */
+
+.modal-botones {
+    display: flex;
+
+    gap: 10px;
+
+    margin-top: 20px;
+}
+
+.modal-botones button {
+    flex: 1;
+
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+
+/* CANCELAR */
+
+.btn-cancelar {
+    background: #777;
+
+    color: white;
+}
+
+.btn-cancelar:hover {
+    background: #555;
+}
+
+
+/* GUARDAR CAMBIOS */
+
+.btn-guardar-edicion {
+    background: #1f4e79;
+
+    color: white;
+}
+
+.btn-guardar-edicion:hover {
+    background: #163a5c;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+
+    main {
+        grid-template-columns: 1fr;
+
+        width: 94%;
+    }
+
+    header h1 {
+        font-size: 25px;
+    }
+
+    .formulario,
+    .miembros,
+    .asistencia-contenedor,
+    .reporte-contenedor {
+        padding: 18px;
+    }
+}
+
+
+/* =========================================================
+   CELULAR
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .asistencia,
+    .reporte {
+        width: 94%;
+    }
+
+    .asistencia-contenedor,
+    .reporte-contenedor {
+        padding: 17px;
+    }
+
+    .asistencia-config {
+        grid-template-columns: 1fr;
+    }
+
+    .reporte-config {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-reporte {
+        width: 100%;
+    }
+
+    .resumen-reporte {
+        grid-template-columns: 1fr;
+    }
+
+    .asistencia-miembro {
+        min-height: 70px;
+    }
+
+    .reporte-miembro {
+        grid-template-columns: 55px 1fr;
+        gap: 10px;
+    }
+
+    .reporte-estadistica {
+        grid-column: 1 / -1;
+
+        text-align: left;
+
+        border-top: 1px solid #eee;
+
+        padding-top: 10px;
+    }
+
+    .dias {
+        grid-template-columns: 1fr;
+    }
+
+    .miembro-card {
+        align-items: flex-start;
+    }
+
+    .miembro-foto {
+        width: 60px;
+        height: 60px;
+    }
+}
+
+
+/* =========================================================
+   CELULAR PEQUEÑO
+========================================================= */
+
+@media (max-width: 480px) {
+
+    header {
+        padding: 18px 12px;
+    }
+
+    header h1 {
+        font-size: 21px;
+    }
+
+    header p {
+        font-size: 12px;
+    }
+
+    main {
+        margin: 15px auto;
+
+        width: 94%;
+    }
+
+    .formulario,
+    .miembros,
+    .asistencia-contenedor,
+    .reporte-contenedor {
+        padding: 15px;
+    }
+
+    .asistencia,
+    .reporte {
+        width: 94%;
+    }
+
+    .asistencia-config {
+        grid-template-columns: 1fr;
+    }
+
+    .reporte-config {
+        grid-template-columns: 1fr;
+    }
+
+    .resumen-reporte {
+        grid-template-columns: 1fr;
+    }
+
+    .modal {
+        padding: 10px;
+    }
+
+    .modal-contenido {
+        max-height: 95vh;
+
+        padding: 18px;
+
+        border-radius: 10px;
+    }
+
+    .modal-header h2 {
+        font-size: 19px;
+    }
+
+    .modal-botones {
+        flex-direction: column;
+    }
+
+    #formEditarMiembro .dias {
+        grid-template-columns: 1fr;
+    }
+
+    #editarPreview {
+        width: 100px;
+        height: 100px;
+    }
+}
