@@ -1187,3 +1187,259 @@ footer {
         height: 100px;
     }
 }
+/* =====================================================
+   PANTALLA DE INICIO DE SESIÓN
+   ===================================================== */
+
+.pantalla-login {
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 9999;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background: #f4f6f8;
+
+}
+
+
+.login-card {
+
+    width: 100%;
+
+    max-width: 400px;
+
+    margin: 20px;
+
+    padding: 30px;
+
+    background: white;
+
+    border-radius: 12px;
+
+    box-shadow:
+        0 8px 30px rgba(0,0,0,0.15);
+
+    text-align: center;
+
+}
+
+
+.login-icon {
+
+    font-size: 45px;
+
+    margin-bottom: 10px;
+
+}
+
+
+.login-card h1 {
+
+    margin: 0 0 8px;
+
+    color: #245985;
+
+}
+
+
+.login-subtitulo {
+
+    margin-bottom: 25px;
+
+    color: #666;
+
+    font-size: 14px;
+
+}
+
+
+.login-campo {
+
+    text-align: left;
+
+    margin-bottom: 18px;
+
+}
+
+
+.login-campo label {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+}
+
+
+.login-campo input {
+
+    width: 100%;
+
+    padding: 11px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 6px;
+
+    box-sizing: border-box;
+
+}
+
+
+.btn-login {
+
+    width: 100%;
+
+    padding: 12px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: #245985;
+
+    color: white;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+}
+
+
+.btn-login:hover {
+
+    background: #1d496d;
+
+}
+
+
+.btn-login:disabled {
+
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+}
+
+
+.mensaje-login {
+
+    margin-top: 15px;
+
+    color: #c62828;
+
+    font-size: 14px;
+
+}
+
+
+/* =====================================================
+   USUARIO CONECTADO
+   ===================================================== */
+
+.usuario-conectado {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    padding: 8px 18px;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #ddd;
+
+    font-size: 13px;
+
+}
+
+
+.rol-usuario {
+
+    display: inline-block;
+
+    margin-left: 8px;
+
+    padding: 3px 8px;
+
+    border-radius: 12px;
+
+    background: #e8eef5;
+
+    color: #245985;
+
+    font-size: 11px;
+
+    font-weight: bold;
+
+}
+
+
+.btn-cerrar-sesion {
+
+    border: none;
+
+    border-radius: 5px;
+
+    padding: 7px 12px;
+
+    background: #c62828;
+
+    color: white;
+
+    cursor: pointer;
+
+}
+
+
+.btn-cerrar-sesion:hover {
+
+    background: #a91f1f;
+
+}
+
+
+@media (max-width: 600px) {
+
+    .login-card {
+
+        padding: 24px;
+
+    }
+
+
+    .usuario-conectado {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+        text-align: center;
+
+    }
+
+
+    .btn-cerrar-sesion {
+
+        width: 100%;
+
+    }
+
+}
