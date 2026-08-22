@@ -188,30 +188,51 @@ async function inicializarAutenticacion() {
     // ESCUCHAR CAMBIOS DE SESIÓN
     // ======================================================
 
-    supabaseClient.auth.onAuthStateChange(
-        async function (
-            evento,
-            sessionActual
+supabaseClient.auth.onAuthStateChange(
+    async function (
+        evento,
+        sessionActual
+    ) {
+
+        console.log(
+            "🔐 Cambio de autenticación:",
+            evento
+        );
+
+
+        if (
+            evento === "SIGNED_OUT"
         ) {
 
-            console.log(
-                "Cambio de autenticación:",
-                evento
-            );
+            usuarioActual = null;
 
+            rolUsuarioActual = null;
 
-            if (
-                sessionActual &&
-                sessionActual.user
-            ) {
+            aplicacionIniciada = false;
 
-                usuarioActual =
-                    sessionActual.user;
+            mostrarLogin();
 
-            }
+            return;
 
         }
-    );
+
+
+        if (
+            (
+                evento === "SIGNED_IN" ||
+                evento === "INITIAL_SESSION"
+            ) &&
+            sessionActual &&
+            sessionActual.user
+        ) {
+
+            usuarioActual =
+                sessionActual.user;
+
+        }
+
+    }
+);
 
 }
 
@@ -262,33 +283,48 @@ async function iniciarSesion(
 
     try {
 
-        const resultado =
-            await supabaseClient.auth.signInWithPassword({
+        console.log("🔵 1. Intentando iniciar sesión...");
+console.log("📧 Email:", email);
 
-                email:
-                    email,
+const resultado =
+    await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
 
-                password:
-                    password
+console.log("🔵 2. Respuesta de Supabase Auth:", resultado);
 
-            });
+if (resultado.error) {
 
+    console.error(
+        "❌ Error de Supabase Auth:",
+        resultado.error
+    );
 
-        if (resultado.error) {
+    throw resultado.error;
 
-            throw resultado.error;
+}
 
-        }
+console.log(
+    "✅ 3. Inicio de sesión correcto."
+);
 
+console.log(
+    "👤 Usuario:",
+    resultado.data.user
+);
 
-        console.log(
-            "✅ Inicio de sesión correcto."
-        );
+console.log(
+    "🔵 4. Cargando perfil..."
+);
 
+await cargarPerfilUsuario(
+    resultado.data.user
+);
 
-        await cargarPerfilUsuario(
-            resultado.data.user
-        );
+console.log(
+    "✅ 5. Perfil cargado."
+);
 
 
     } catch (error) {
@@ -380,18 +416,22 @@ async function cargarPerfilUsuario(
         }
 
 
-        rolUsuarioActual =
-            perfil.rol;
+rolUsuarioActual =
+    perfil.rol;
 
 
-        console.log(
-            "👤 Rol:",
-            rolUsuarioActual
-        );
+console.log(
+    "👤 Rol:",
+    rolUsuarioActual
+);
 
 
-        mostrarSistema();
+// Mostrar el sistema
+mostrarSistema();
 
+
+// Iniciar las funciones de la aplicación
+iniciarAplicacionUnaVez();
 
     } catch (error) {
 
@@ -4290,22 +4330,67 @@ async function cargarReporte() {
 
 
 // ==========================================================
+// INICIO DE LA APLICACIÓN
+// ==========================================================
+
+let aplicacionIniciada = false;
+
+
+// ==========================================================
+// INICIAR APLICACIÓN DESPUÉS DEL LOGIN
+// ==========================================================
+
+function iniciarAplicacionUnaVez() {
+
+    if (aplicacionIniciada) {
+
+        return;
+
+    }
+
+    aplicacionIniciada = true;
+
+    console.log(
+        "🚀 Iniciando aplicación..."
+    );
+
+    iniciarAplicacion();
+
+}
+
+
+// ==========================================================
 // INICIAR CUANDO CARGUE EL HTML
 // ==========================================================
 
+async function iniciarSistema() {
+
+    console.log(
+        "🔐 Iniciando sistema..."
+    );
+
+    // Primero inicializamos la autenticación
+    await inicializarAutenticacion();
+
+}
+
+
+// ==========================================================
+// ESPERAR A QUE CARGUE EL HTML
+// ==========================================================
+
 if (
-    document.readyState ===
-    "loading"
+    document.readyState === "loading"
 ) {
 
     document.addEventListener(
         "DOMContentLoaded",
-        iniciarAplicacion
+        iniciarSistema
     );
 
 } else {
 
-    iniciarAplicacion();
+    iniciarSistema();
 
 }
 
