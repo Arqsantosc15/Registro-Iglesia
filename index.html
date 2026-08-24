@@ -134,11 +134,14 @@
 
 <main>
 
-    <!-- ==========================================
-         NUEVO MIEMBRO
-    =========================================== -->
 
-    <section class="formulario">
+    <!-- ==========================================
+         FILA SUPERIOR
+    ========================================== -->
+    <div class="paneles-superiores">
+
+<!-- NUEVO MIEMBRO -->
+        <section class="formulario">
 
         <h2>Nuevo miembro</h2>
 
@@ -227,14 +230,7 @@
             </div>
 
 
-            <div id="preview-container">
 
-                <img
-                    id="preview"
-                    alt="Vista previa"
-                >
-
-            </div>
 
 
             <div class="campo">
@@ -332,12 +328,13 @@
 
 
 
-    <!-- ==========================================
-         MIEMBROS REGISTRADOS
-    =========================================== -->
+        <!-- MIEMBROS REGISTRADOS -->
+        <section class="miembros" id="seccionMiembrosRegistrados">
 
-   <section class="miembros">
+  <div class="titulo-miembros">
     <h2>👥 Miembros registrados</h2>
+    <span id="totalMiembros">0</span>
+</div>
 
     <div class="busqueda">
         <input
@@ -347,10 +344,140 @@
         >
     </div>
 
-    <div id="listaMiembros"></div>
+            <div id="listaMiembros">
+                <p class="mensaje">
+
+</div>
 </section>
 
-            
+          
+    <!-- ==========================================
+         CONTROL DE ASISTENCIA
+    =========================================== -->
+    <section
+        class="asistencia"
+        id="seccionAsistencia"
+    >
+
+        <div class="asistencia-contenedor">
+
+        <h2>📋 Control de Asistencia</h2>
+
+        <p class="subtitulo-asistencia">
+            Registre la asistencia de los miembros por fecha y servicio.
+        </p>
+
+        <!-- FECHA Y SERVICIO -->
+
+        <div class="filtros-asistencia">
+
+            <div class="campo-asistencia">
+
+                <label for="fechaAsistencia">
+                    📅 Fecha
+                </label>
+
+                <input
+                    type="date"
+                    id="fechaAsistencia"
+                >
+
+            </div>
+
+
+            <div class="campo-asistencia">
+
+                <label for="servicioAsistencia">
+                    ⛪ Servicio / Reunión
+                </label>
+
+                <select id="servicioAsistencia">
+
+                    <option value="">
+                        Seleccione un servicio
+                    </option>
+
+                    <option value="domingo">
+                        Culto Domingo
+                    </option>
+
+                    <option value="miercoles">
+                        Culto Miércoles
+                    </option>
+
+                    <option value="viernes">
+                        Culto Viernes
+                    </option>
+
+                    <option value="jovenes">
+                        Jóvenes
+                    </option>
+
+                    <option value="caballeros">
+                        Caballeros
+                    </option>
+
+                    <option value="damas">
+                        Damas
+                    </option>
+
+                    <option value="otro">
+                        Otro
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <!-- BOTÓN CARGAR -->
+
+        <div class="botones-asistencia">
+
+            <button
+                type="button"
+                id="btnCargarAsistencia"
+                class="btn-cargar-asistencia"
+            >
+                📋 Cargar miembros
+            </button>
+
+        </div>
+
+
+        <!-- LISTA -->
+
+        <div
+            id="listaAsistencia"
+            class="lista-asistencia"
+        >
+
+            <p class="mensaje">
+                Seleccione una fecha y un servicio para cargar la asistencia.
+            </p>
+
+        </div>
+
+
+        <!-- GUARDAR -->
+
+        <div class="botones-asistencia">
+
+            <button
+                type="button"
+                id="btnGuardarAsistencia"
+                class="btn-guardar-asistencia"
+            >
+                💾 Guardar asistencia
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
 <!-- ==========================================
      MODAL EDITAR MIEMBRO
 ========================================== -->
@@ -577,129 +704,15 @@
 
 
 <!-- ==========================================
-     TOMAR ASISTENCIA
-=========================================== -->
-
-<section class="asistencia">
-
-    <div class="asistencia-contenedor">
-
-        <h2>
-            📋 Tomar asistencia
-        </h2>
-
-
-        <p class="subtitulo-asistencia">
-            Seleccione la fecha y el servicio para registrar quién asistió.
-        </p>
-
-
-        <div class="asistencia-config">
-
-
-            <div class="campo">
-
-                <label for="fechaAsistencia">
-                    📅 Fecha
-                </label>
-
-                <input
-                    type="date"
-                    id="fechaAsistencia"
-                >
-
-            </div>
-
-
-            <div class="campo">
-
-                <label for="servicioAsistencia">
-                    ⛪ Servicio / Reunión
-                </label>
-
-                <select id="servicioAsistencia">
-
-                    <option value="">
-                        Seleccione un servicio
-                    </option>
-
-                    <option value="Domingo - Culto Dominical">
-                        Domingo - Culto Dominical
-                    </option>
-
-                    <option value="Martes - Culto Especial">
-                        Martes - Culto Especial
-                    </option>
-
-                    <option value="Miércoles - Oración de Jóvenes — Casa de Amigos">
-                        Miércoles - Oración de Jóvenes — Casa de Amigos
-                    </option>
-
-                    <option value="Jueves - Escuela Bíblica">
-                        Jueves - Escuela Bíblica
-                    </option>
-
-                    <option value="Viernes - Culto de Viernes">
-                        Viernes - Culto de Viernes
-                    </option>
-
-                    <option value="Sábado - Culto de Adolescentes">
-                        Sábado - Culto de Adolescentes
-                    </option>
-
-                    <option value="Otro">
-                        Otro
-                    </option>
-
-                </select>
-
-            </div>
-
-        </div>
-
-
-        <button
-            id="btnCargarAsistencia"
-            class="btn-asistencia"
-            type="button"
-        >
-            👥 Cargar miembros
-        </button>
-
-
-        <div
-            id="listaAsistencia"
-            class="lista-asistencia"
-        >
-
-            <p class="mensaje">
-                Seleccione una fecha y un servicio.
-            </p>
-
-        </div>
-
-
-        <button
-            id="btnGuardarAsistencia"
-            class="btn-guardar-asistencia"
-            type="button"
-        >
-            💾 Guardar asistencia
-        </button>
-
-    </div>
-
-</section>
-
-
-
-<!-- ==========================================
      REPORTE DE ASISTENCIA
 =========================================== -->
 
-<section class="reporte">
+    <section
+        class="reporte"
+        id="seccionReporte"
+    >
 
-    <div class="reporte-contenedor">
+        <div class="reporte-contenedor">
 
         <h2>
             📊 Reporte de asistencia
