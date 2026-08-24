@@ -1,670 +1,70 @@
 // ==========================================================
 // CONTROL DE MIEMBROS Y ASISTENCIA
-// app.js - VERSIÓN COMPLETA, LIMPIA Y CORREGIDA
+// app.js - VERSIÓN COMPLETA, CORREGIDA Y ORDENADA
 // ==========================================================
-
 
 // ==========================================================
 // CONEXIÓN CON SUPABASE
 // ==========================================================
 
-const SUPABASE_URL =
-    "https://kjpwrpqlscitxyszsjkk.supabase.co";
+const SUPABASE_URL = "https://kjpwrpqlscitxyszsjkk.supabase.co";
+const SUPABASE_KEY = "sb_publishable_npgkf0Z40ecE7deKI7hHiw_ntgm0CJJ";
 
-const SUPABASE_KEY =
-    "sb_publishable_npgkf0Z40ecE7deKI7hHiw_ntgm0CJJ";
+const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
 // ==========================================================
 // AUTENTICACIÓN Y ROLES
 // ==========================================================
 
 let usuarioActual = null;
 let rolUsuarioActual = null;
+let aplicacionIniciada = false;
 
-
-// ==========================================================
-// ELEMENTOS DEL LOGIN
-// ==========================================================
-
+// Elementos de login
 let pantallaLogin;
 let formLogin;
 let loginEmail;
 let loginPassword;
 let btnLogin;
 let mensajeLogin;
-
 let usuarioConectado;
 let nombreUsuario;
 let rolUsuario;
 let btnCerrarSesion;
 
-
 // ==========================================================
-// INICIALIZAR AUTENTICACIÓN
-// ==========================================================
-
-async function inicializarAutenticacion() {
-
-    console.log("🔐 Iniciando sistema de autenticación...");
-
-
-    pantallaLogin =
-        document.getElementById(
-            "pantallaLogin"
-        );
-
-
-    formLogin =
-        document.getElementById(
-            "formLogin"
-        );
-
-
-    loginEmail =
-        document.getElementById(
-            "loginEmail"
-        );
-
-
-    loginPassword =
-        document.getElementById(
-            "loginPassword"
-        );
-
-
-    btnLogin =
-        document.getElementById(
-            "btnLogin"
-        );
-
-
-    mensajeLogin =
-        document.getElementById(
-            "mensajeLogin"
-        );
-
-
-    usuarioConectado =
-        document.getElementById(
-            "usuarioConectado"
-        );
-
-
-    nombreUsuario =
-        document.getElementById(
-            "nombreUsuario"
-        );
-
-
-    rolUsuario =
-        document.getElementById(
-            "rolUsuario"
-        );
-
-
-    btnCerrarSesion =
-        document.getElementById(
-            "btnCerrarSesion"
-        );
-
-
-    // ======================================================
-    // FORMULARIO LOGIN
-    // ======================================================
-
-    if (formLogin) {
-
-        formLogin.addEventListener(
-            "submit",
-            iniciarSesion
-        );
-
-    }
-
-
-    // ======================================================
-    // CERRAR SESIÓN
-    // ======================================================
-
-    if (btnCerrarSesion) {
-
-        btnCerrarSesion.addEventListener(
-            "click",
-            cerrarSesion
-        );
-
-    }
-
-
-    // ======================================================
-    // COMPROBAR SESIÓN EXISTENTE
-    // ======================================================
-
-    const resultado =
-        await supabaseClient.auth.getSession();
-
-
-    if (resultado.error) {
-
-        console.error(
-            "Error comprobando sesión:",
-            resultado.error
-        );
-
-        mostrarLogin();
-
-        return;
-
-    }
-
-
-    const session =
-        resultado.data.session;
-
-
-    if (session) {
-
-        console.log(
-            "✅ Sesión existente encontrada."
-        );
-
-        await cargarPerfilUsuario(
-            session.user
-        );
-
-    } else {
-
-        mostrarLogin();
-
-    }
-
-
-    // ======================================================
-    // ESCUCHAR CAMBIOS DE SESIÓN
-    // ======================================================
-
-supabaseClient.auth.onAuthStateChange(
-    async function (
-        evento,
-        sessionActual
-    ) {
-
-        console.log(
-            "🔐 Cambio de autenticación:",
-            evento
-        );
-
-
-        if (
-            evento === "SIGNED_OUT"
-        ) {
-
-            usuarioActual = null;
-
-            rolUsuarioActual = null;
-
-            aplicacionIniciada = false;
-
-            mostrarLogin();
-
-            return;
-
-        }
-
-
-        if (
-            (
-                evento === "SIGNED_IN" ||
-                evento === "INITIAL_SESSION"
-            ) &&
-            sessionActual &&
-            sessionActual.user
-        ) {
-
-            usuarioActual =
-                sessionActual.user;
-
-        }
-
-    }
-);
-
-}
-
-
-// ==========================================================
-// INICIAR SESIÓN
+// SERVICIOS / REUNIONES SEGÚN EL DÍA
 // ==========================================================
 
-async function iniciarSesion(
-    event
-) {
-
-    event.preventDefault();
-
-
-    const email =
-        loginEmail.value
-            .trim();
-
-
-    const password =
-        loginPassword.value;
-
-
-    if (!email || !password) {
-
-        mostrarMensajeLogin(
-            "Por favor, introduzca el correo y la contraseña."
-        );
-
-        return;
-
-    }
-
-
-    btnLogin.disabled =
-        true;
-
-
-    btnLogin.textContent =
-        "⏳ Iniciando sesión...";
-
-
-    mostrarMensajeLogin(
-        ""
-    );
-
-
-    try {
-
-        console.log("🔵 1. Intentando iniciar sesión...");
-console.log("📧 Email:", email);
-
-const resultado =
-    await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-    });
-
-console.log("🔵 2. Respuesta de Supabase Auth:", resultado);
-
-if (resultado.error) {
-
-    console.error(
-        "❌ Error de Supabase Auth:",
-        resultado.error
-    );
-
-    throw resultado.error;
-
-}
-
-console.log(
-    "✅ 3. Inicio de sesión correcto."
-);
-
-console.log(
-    "👤 Usuario:",
-    resultado.data.user
-);
-
-console.log(
-    "🔵 4. Cargando perfil..."
-);
-
-await cargarPerfilUsuario(
-    resultado.data.user
-);
-
-console.log(
-    "✅ 5. Perfil cargado."
-);
-
-
-    } catch (error) {
-
-        console.error(
-            "Error iniciando sesión:",
-            error
-        );
-
-
-        mostrarMensajeLogin(
-            "❌ Correo o contraseña incorrectos."
-        );
-
-
-    } finally {
-
-        btnLogin.disabled =
-            false;
-
-
-        btnLogin.textContent =
-            "🔐 Iniciar sesión";
-
-    }
-
-}
-
-
-// ==========================================================
-// CARGAR PERFIL Y ROL
-// ==========================================================
-
-async function cargarPerfilUsuario(
-    usuario
-) {
-
-    if (!usuario) {
-
-        mostrarLogin();
-
-        return;
-
-    }
-
-
-    usuarioActual =
-        usuario;
-
-
-    console.log(
-        "Usuario autenticado:",
-        usuario.email
-    );
-
-
-    try {
-
-        const resultado =
-            await supabaseClient
-                .from("perfiles")
-                .select(
-                    "id, user_id, rol"
-                )
-                .eq(
-                    "user_id",
-                    usuario.id
-                )
-                .single();
-
-
-        if (resultado.error) {
-
-            throw resultado.error;
-
-        }
-
-
-        const perfil =
-            resultado.data;
-
-
-        if (!perfil) {
-
-            throw new Error(
-                "Este usuario no tiene un perfil asignado."
-            );
-
-        }
-
-
-rolUsuarioActual =
-    perfil.rol;
-
-
-console.log(
-    "👤 Rol:",
-    rolUsuarioActual
-);
-
-
-// Mostrar el sistema
-mostrarSistema();
-
-
-// Iniciar las funciones de la aplicación
-iniciarAplicacionUnaVez();
-
-    } catch (error) {
-
-        console.error(
-            "Error cargando perfil:",
-            error
-        );
-
-
-        await supabaseClient.auth.signOut();
-
-
-        mostrarLogin();
-
-
-        mostrarMensajeLogin(
-            "❌ Este usuario no tiene un rol configurado."
-        );
-
-    }
-
-}
-
-
-// ==========================================================
-// MOSTRAR LOGIN
-// ==========================================================
-
-function mostrarLogin() {
-
-    if (pantallaLogin) {
-
-        pantallaLogin.style.display =
-            "flex";
-
-    }
-
-
-    if (usuarioConectado) {
-
-        usuarioConectado.style.display =
-            "none";
-
-    }
-
-}
-
-
-// ==========================================================
-// MOSTRAR SISTEMA
-// ==========================================================
-
-function mostrarSistema() {
-
-    if (pantallaLogin) {
-
-        pantallaLogin.style.display =
-            "none";
-
-    }
-
-
-    if (usuarioConectado) {
-
-        usuarioConectado.style.display =
-            "flex";
-
-    }
-
-
-    if (nombreUsuario) {
-
-        nombreUsuario.textContent =
-            usuarioActual.email;
-
-    }
-
-
-    if (rolUsuario) {
-
-        const nombresRoles = {
-
-            admin:
-                "Administrador",
-
-            secretario:
-                "Secretario",
-
-            miembro:
-                "Miembro"
-
-        };
-
-
-        rolUsuario.textContent =
-            nombresRoles[
-                rolUsuarioActual
-            ] ||
-            rolUsuarioActual;
-
-    }
-
-
-    console.log(
-        "🚀 Sistema disponible para:",
-        rolUsuarioActual
-    );
-
-}
-
-
-// ==========================================================
-// MOSTRAR MENSAJE LOGIN
-// ==========================================================
-
-function mostrarMensajeLogin(
-    mensaje
-) {
-
-    if (!mensajeLogin) {
-
-        return;
-
-    }
-
-
-    mensajeLogin.textContent =
-        mensaje;
-
-}
-
-
-// ==========================================================
-// CERRAR SESIÓN
-// ==========================================================
-
-async function cerrarSesion() {
-
-    const confirmar =
-        confirm(
-            "¿Desea cerrar la sesión?"
-        );
-
-
-    if (!confirmar) {
-
-        return;
-
-    }
-
-
-    try {
-
-        const resultado =
-            await supabaseClient.auth.signOut();
-
-
-        if (resultado.error) {
-
-            throw resultado.error;
-
-        }
-
-
-        usuarioActual =
-            null;
-
-
-        rolUsuarioActual =
-            null;
-
-
-        mostrarLogin();
-
-
-        if (formLogin) {
-
-            formLogin.reset();
-
-        }
-
-
-        mostrarMensajeLogin(
-            ""
-        );
-
-
-        console.log(
-            "🚪 Sesión cerrada."
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Error cerrando sesión:",
-            error
-        );
-
-
-        alert(
-            "❌ No se pudo cerrar la sesión.\n\n" +
-            error.message
-        );
-
-    }
-
-}
+const SERVICIOS_POR_DIA = {
+    0: [{ value: "Culto Dominical", label: "Culto Dominical" }],
+    1: [],
+    2: [{ value: "Culto Marte Especial", label: "Culto Marte Especial" }],
+    3: [{ value: "Oración de Jóvenes - Casa de Amigos", label: "Oración de Jóvenes - Casa de Amigos" }],
+    4: [{ value: "Escuela Bíblica", label: "Escuela Bíblica" }],
+    5: [{ value: "Culto Viernes Especial", label: "Culto Viernes Especial" }],
+    6: [{ value: "Culto de Adolescentes", label: "Culto de Adolescentes" }]
+};
 
 // ==========================================================
 // VARIABLES GENERALES
 // ==========================================================
 
-// ------------------------------
-// MIEMBROS
-// ------------------------------
-
+// Miembros
 let memberForm;
 let listaMiembros;
 let buscar;
 let fotoInput;
 let preview;
 
-
-// ------------------------------
-// MODAL EDITAR
-// ------------------------------
-
+// Modal editar
 let modalEditar;
 let btnCerrarModal;
 let btnCancelarEdicion;
 let btnGuardarEdicion;
-
 let editarId;
 let editarNombre;
 let editarTelefono;
@@ -673,2336 +73,1531 @@ let editarFoto;
 let editarPreview;
 let formEditarMiembro;
 
-
-// ------------------------------
-// ASISTENCIA
-// ------------------------------
-
+// Asistencia
 let fechaAsistencia;
 let servicioAsistencia;
 let btnCargarAsistencia;
 let btnGuardarAsistencia;
 let listaAsistencia;
 
-
-// ------------------------------
-// REPORTE
-// ------------------------------
-
+// Reporte
 let mesReporte;
 let btnVerReporte;
 let resultadoReporte;
 let resumenReporte;
 
+// ==========================================================
+// AUTENTICACIÓN
+// ==========================================================
+
+async function inicializarAutenticacion() {
+    console.log("🔐 Iniciando sistema de autenticación...");
+
+    pantallaLogin = document.getElementById("pantallaLogin");
+    formLogin = document.getElementById("formLogin");
+    loginEmail = document.getElementById("loginEmail");
+    loginPassword = document.getElementById("loginPassword");
+    btnLogin = document.getElementById("btnLogin");
+    mensajeLogin = document.getElementById("mensajeLogin");
+    usuarioConectado = document.getElementById("usuarioConectado");
+    nombreUsuario = document.getElementById("nombreUsuario");
+    rolUsuario = document.getElementById("rolUsuario");
+    btnCerrarSesion = document.getElementById("btnCerrarSesion");
+
+    if (formLogin) {
+        formLogin.addEventListener("submit", iniciarSesion);
+    }
+
+    if (btnCerrarSesion) {
+        btnCerrarSesion.addEventListener("click", cerrarSesion);
+    }
+
+    const resultado = await supabaseClient.auth.getSession();
+
+    if (resultado.error) {
+        console.error("Error comprobando sesión:", resultado.error);
+        mostrarLogin();
+        return;
+    }
+
+    const session = resultado.data.session;
+
+    if (session && session.user) {
+        await cargarPerfilUsuario(session.user);
+    } else {
+        mostrarLogin();
+    }
+
+    supabaseClient.auth.onAuthStateChange((evento, sessionActual) => {
+        console.log("🔐 Cambio de autenticación:", evento);
+
+        if (evento === "SIGNED_OUT") {
+            usuarioActual = null;
+            rolUsuarioActual = null;
+            aplicacionIniciada = false;
+            mostrarLogin();
+            return;
+        }
+
+        if (
+            (evento === "SIGNED_IN" || evento === "INITIAL_SESSION") &&
+            sessionActual &&
+            sessionActual.user
+        ) {
+            usuarioActual = sessionActual.user;
+        }
+    });
+}
+
+async function iniciarSesion(event) {
+    event.preventDefault();
+
+    const email = loginEmail ? loginEmail.value.trim() : "";
+    const password = loginPassword ? loginPassword.value : "";
+
+    if (!email || !password) {
+        mostrarMensajeLogin("Por favor, introduzca el correo y la contraseña.");
+        return;
+    }
+
+    if (btnLogin) {
+        btnLogin.disabled = true;
+        btnLogin.textContent = "⏳ Iniciando sesión...";
+    }
+
+    mostrarMensajeLogin("");
+
+    try {
+        const resultado = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
+
+        if (resultado.error) {
+            throw resultado.error;
+        }
+
+        console.log("✅ Inicio de sesión correcto:", resultado.data.user);
+
+        await cargarPerfilUsuario(resultado.data.user);
+    } catch (error) {
+        console.error("Error iniciando sesión:", error);
+        mostrarMensajeLogin("❌ Correo o contraseña incorrectos.");
+    } finally {
+        if (btnLogin) {
+            btnLogin.disabled = false;
+            btnLogin.textContent = "🔐 Iniciar sesión";
+        }
+    }
+}
+
+async function cargarPerfilUsuario(usuario) {
+    if (!usuario) {
+        mostrarLogin();
+        return;
+    }
+
+    usuarioActual = usuario;
+
+    try {
+        const resultado = await supabaseClient
+            .from("perfiles")
+            .select("id, user_id, rol")
+            .eq("user_id", usuario.id)
+            .single();
+
+        if (resultado.error) {
+            throw resultado.error;
+        }
+
+        if (!resultado.data) {
+            throw new Error("Este usuario no tiene un perfil asignado.");
+        }
+
+        const rol = String(resultado.data.rol || "")
+            .trim()
+            .toLowerCase();
+
+        const rolesPermitidos = [
+            "admin",
+            "administrador",
+            "secretario",
+            "miembro"
+        ];
+
+        if (!rolesPermitidos.includes(rol)) {
+            throw new Error("Rol de usuario no válido: " + resultado.data.rol);
+        }
+
+        rolUsuarioActual =
+            rol === "admin" || rol === "administrador"
+                ? "administrador"
+                : rol;
+
+        console.log("👤 Rol:", rolUsuarioActual);
+
+        mostrarSistema();
+        iniciarAplicacionUnaVez();
+    } catch (error) {
+        console.error("Error cargando perfil:", error);
+
+        await supabaseClient.auth.signOut();
+
+        mostrarLogin();
+        mostrarMensajeLogin(
+            "❌ Este usuario no tiene un rol configurado."
+        );
+    }
+}
+
+function mostrarLogin() {
+    if (pantallaLogin) {
+        pantallaLogin.style.display = "flex";
+    }
+
+    if (usuarioConectado) {
+        usuarioConectado.style.display = "none";
+    }
+
+    // Ocultar funciones del sistema mientras no haya sesión.
+    const elementosSistema = [
+        "seccionNuevoMiembro",
+        "seccionMiembrosRegistrados",
+        "seccionControlAsistencia",
+        "formularioMiembro",
+        "listaMiembros",
+        "btnCargarAsistencia",
+        "btnGuardarAsistencia",
+        "listaAsistencia",
+        "mesReporte",
+        "btnVerReporte",
+        "resultadoReporte",
+        "resumenReporte"
+    ];
+
+    elementosSistema.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            elemento.style.display = "none";
+        }
+    });
+}
+
+function mostrarSistema() {
+    if (pantallaLogin) {
+        pantallaLogin.style.display = "none";
+    }
+
+    if (usuarioConectado) {
+        usuarioConectado.style.display = "flex";
+    }
+
+    if (nombreUsuario) {
+        nombreUsuario.textContent =
+            usuarioActual ? (usuarioActual.email || "") : "";
+    }
+
+    if (rolUsuario) {
+        const nombresRoles = {
+            administrador: "Administrador",
+            secretario: "Secretario",
+            miembro: "Miembro"
+        };
+
+        rolUsuario.textContent =
+            nombresRoles[rolUsuarioActual] || rolUsuarioActual;
+    }
+
+    const seccionNuevoMiembro =
+        document.getElementById("seccionNuevoMiembro");
+
+    const seccionMiembrosRegistrados =
+        document.getElementById("seccionMiembrosRegistrados");
+
+    const seccionControlAsistencia =
+        document.getElementById("seccionControlAsistencia");
+
+    const formularioMiembro =
+        document.getElementById("memberForm");
+
+    const listaMiembrosElemento =
+        document.getElementById("listaMiembros");
+
+    const botonCargarAsistencia =
+        document.getElementById("btnCargarAsistencia");
+
+    const botonGuardarAsistencia =
+        document.getElementById("btnGuardarAsistencia");
+
+    const listaAsistenciaElemento =
+        document.getElementById("listaAsistencia");
+
+    const mesReporteElemento =
+        document.getElementById("mesReporte");
+
+    const botonReporte =
+        document.getElementById("btnVerReporte");
+
+    const resultadoReporteElemento =
+        document.getElementById("resultadoReporte");
+
+    const resumenReporteElemento =
+        document.getElementById("resumenReporte");
+
+    // Primero ocultar todo.
+    [
+        seccionNuevoMiembro,
+        seccionMiembrosRegistrados,
+        seccionControlAsistencia,
+        formularioMiembro,
+        listaMiembrosElemento,
+        botonCargarAsistencia,
+        botonGuardarAsistencia,
+        listaAsistenciaElemento,
+        mesReporteElemento,
+        botonReporte,
+        resultadoReporteElemento,
+        resumenReporteElemento
+    ].forEach(elemento => {
+        if (elemento) {
+            elemento.style.display = "none";
+        }
+    });
+
+    if (rolUsuarioActual === "administrador") {
+        [
+            seccionNuevoMiembro,
+            seccionMiembrosRegistrados,
+            seccionControlAsistencia,
+            formularioMiembro,
+            listaMiembrosElemento,
+            botonCargarAsistencia,
+            botonGuardarAsistencia,
+            listaAsistenciaElemento,
+            mesReporteElemento,
+            botonReporte,
+            resultadoReporteElemento,
+            resumenReporteElemento
+        ].forEach(elemento => {
+            if (elemento) elemento.style.display = "";
+        });
+
+        console.log("👑 Permisos: ADMINISTRADOR");
+        return;
+    }
+
+    if (rolUsuarioActual === "secretario") {
+        [
+            seccionNuevoMiembro,
+            seccionMiembrosRegistrados,
+            seccionControlAsistencia,
+            formularioMiembro,
+            listaMiembrosElemento,
+            botonCargarAsistencia,
+            botonGuardarAsistencia,
+            listaAsistenciaElemento,
+            mesReporteElemento,
+            botonReporte,
+            resultadoReporteElemento,
+            resumenReporteElemento
+        ].forEach(elemento => {
+            if (elemento) elemento.style.display = "";
+        });
+
+        console.log("📝 Permisos: SECRETARIO");
+        return;
+    }
+
+if (rolUsuarioActual === "miembro") {
+
+    // MIEMBRO: solamente consulta
+    [
+        seccionNuevoMiembro,
+        seccionControlAsistencia,
+        formularioMiembro,
+        botonCargarAsistencia,
+        botonGuardarAsistencia,
+        listaAsistenciaElemento
+    ].forEach(elemento => {
+        if (elemento) {
+            elemento.style.setProperty("display", "none", "important");
+        }
+    });
+
+    // Mostrar solamente miembros registrados
+    [
+        seccionMiembrosRegistrados,
+        listaMiembrosElemento
+    ].forEach(elemento => {
+        if (elemento) {
+            elemento.style.setProperty("display", "", "important");
+        }
+    });
+
+    // Mostrar solamente reporte
+    [
+        mesReporteElemento,
+        botonReporte,
+        resultadoReporteElemento,
+        resumenReporteElemento
+    ].forEach(elemento => {
+        if (elemento) {
+            elemento.style.setProperty("display", "", "important");
+        }
+    });
+
+    console.log("👤 Permisos: MIEMBRO - SOLO CONSULTA");
+    return;
+}
+
+    console.warn("⚠️ Rol desconocido:", rolUsuarioActual);
+}
+
+function mostrarMensajeLogin(mensaje) {
+    if (mensajeLogin) {
+        mensajeLogin.textContent = mensaje;
+    }
+}
+
+async function cerrarSesion() {
+    if (!confirm("¿Desea cerrar la sesión?")) {
+        return;
+    }
+
+    try {
+        const resultado = await supabaseClient.auth.signOut();
+
+        if (resultado.error) {
+            throw resultado.error;
+        }
+
+        usuarioActual = null;
+        rolUsuarioActual = null;
+        aplicacionIniciada = false;
+
+        if (formLogin) {
+            formLogin.reset();
+        }
+
+        mostrarMensajeLogin("");
+        mostrarLogin();
+
+        console.log("🚪 Sesión cerrada.");
+    } catch (error) {
+        console.error("Error cerrando sesión:", error);
+
+        alert(
+            "❌ No se pudo cerrar la sesión.\n\n" +
+            error.message
+        );
+    }
+}
+
+
+function agregarEstilosListaMiembros() {
+    if (document.getElementById("estilosListaMiembros")) {
+        return;
+    }
+
+    const estilo = document.createElement("style");
+    estilo.id = "estilosListaMiembros";
+    estilo.textContent = `
+/* ==========================================================
+   CORRECCIÓN: LISTA DE MIEMBROS CON BARRA DE DESPLAZAMIENTO
+   ========================================================== */
+
+#seccionMiembrosRegistrados {
+    min-height: 0;
+}
+
+#listaMiembros {
+    max-height: 520px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+    scrollbar-gutter: stable;
+}
+
+#listaMiembros .miembro-card {
+    margin-bottom: 10px;
+}
+
+#listaMiembros::-webkit-scrollbar {
+    width: 10px;
+}
+
+#listaMiembros::-webkit-scrollbar-track {
+    background: #eef2f5;
+    border-radius: 10px;
+}
+
+#listaMiembros::-webkit-scrollbar-thumb {
+    background: #1f4e79;
+    border-radius: 10px;
+}
+
+#listaMiembros::-webkit-scrollbar-thumb:hover {
+    background: #163a5c;
+}
+
+#listaMiembros {
+    scrollbar-width: auto;
+    scrollbar-color: #1f4e79 #eef2f5;
+}
+
+@media (max-width: 800px) {
+    #listaMiembros {
+        max-height: 60vh;
+    }
+}
+`;
+    document.head.appendChild(estilo);
+}
 
 // ==========================================================
 // INICIAR APLICACIÓN
 // ==========================================================
 
-function iniciarAplicacion() {
-
-    console.log(
-        "✅ Aplicación iniciada correctamente."
-    );
-
-    inicializarMiembros();
-
-    inicializarAsistencia();
-
-    inicializarReporte();
-
-    inicializarModalEditar();
-
-}
-
-
-// ==========================================================
-// INICIALIZAR MIEMBROS
-// ==========================================================
-
-function inicializarMiembros() {
-
-    memberForm =
-        document.getElementById(
-            "memberForm"
-        );
-
-    listaMiembros =
-        document.getElementById(
-            "listaMiembros"
-        );
-
-    buscar =
-        document.getElementById(
-            "buscar"
-        );
-
-    fotoInput =
-        document.getElementById(
-            "foto"
-        );
-
-    preview =
-        document.getElementById(
-            "preview"
-        );
-
-
-    // ------------------------------
-    // VISTA PREVIA FOTO
-    // ------------------------------
-
-    if (fotoInput) {
-
-        fotoInput.addEventListener(
-            "change",
-            mostrarVistaPreviaFoto
-        );
-
-    }
-
-
-    // ------------------------------
-    // GUARDAR MIEMBRO
-    // ------------------------------
-
-    if (memberForm) {
-
-        memberForm.addEventListener(
-            "submit",
-            guardarMiembro
-        );
-
-    }
-
-
-    // ------------------------------
-    // BUSCAR
-    // ------------------------------
-
-    if (buscar) {
-
-        buscar.addEventListener(
-            "input",
-            buscarMiembros
-        );
-
-    }
-
-
-    cargarMiembros();
-
-}
-
-
-// ==========================================================
-// VISTA PREVIA FOTO NUEVO MIEMBRO
-// ==========================================================
-
-function mostrarVistaPreviaFoto() {
-
-    const archivo =
-        fotoInput &&
-        fotoInput.files
-            ? fotoInput.files[0]
-            : null;
-
-
-    if (!archivo) {
-
-        if (preview) {
-
-            preview.src = "";
-
-            preview.style.display =
-                "none";
-
-        }
-
+function iniciarAplicacionUnaVez() {
+    if (aplicacionIniciada) {
         return;
     }
 
+    aplicacionIniciada = true;
 
-    const url =
-        URL.createObjectURL(
-            archivo
-        );
+    agregarEstilosListaMiembros();
 
+    console.log("🚀 Iniciando aplicación...");
 
-    if (preview) {
-
-        preview.src =
-            url;
-
-        preview.style.display =
-            "inline-block";
-
-    }
-
+    inicializarMiembros();
+    inicializarAsistencia();
+    agregarEstilosAsistenciaPorMinisterio();
+    inicializarReporte();
+    inicializarModalEditar();
 }
 
-
 // ==========================================================
-// GUARDAR MIEMBRO
+// MIEMBROS
 // ==========================================================
 
-async function guardarMiembro(event) {
+function inicializarMiembros() {
+    memberForm = document.getElementById("memberForm");
+    listaMiembros = document.getElementById("listaMiembros");
+    buscar = document.getElementById("buscar");
+    fotoInput = document.getElementById("foto");
+    preview = document.getElementById("preview");
 
-    event.preventDefault();
-
-
-    const boton =
-        document.querySelector(
-            ".btn-guardar"
-        );
-
-
-    if (boton) {
-
-        boton.disabled = true;
-
-        boton.textContent =
-            "⏳ Guardando...";
-
+    if (fotoInput) {
+        fotoInput.addEventListener("change", mostrarVistaPreviaFoto);
     }
 
+    if (memberForm) {
+        memberForm.addEventListener("submit", guardarMiembro);
+    }
+
+    if (buscar) {
+        buscar.addEventListener("input", buscarMiembros);
+    }
+
+    cargarMiembros();
+}
+
+function mostrarVistaPreviaFoto() {
+    const archivo =
+        fotoInput && fotoInput.files
+            ? fotoInput.files[0]
+            : null;
+
+    if (!archivo) {
+        if (preview) {
+            preview.src = "";
+            preview.style.display = "none";
+        }
+        return;
+    }
+
+    const url = URL.createObjectURL(archivo);
+
+    if (preview) {
+        preview.src = url;
+        preview.style.display = "inline-block";
+    }
+}
+
+async function guardarMiembro(event) {
+    event.preventDefault();
+
+    const boton = document.querySelector(".btn-guardar");
+
+    if (boton) {
+        boton.disabled = true;
+        boton.textContent = "⏳ Guardando...";
+    }
 
     try {
+        const nombreElemento = document.getElementById("nombre");
+        const telefonoElemento = document.getElementById("telefono");
+        const ministerioElemento = document.getElementById("ministerio");
 
-        const nombre =
-            document
-                .getElementById("nombre")
-                .value
-                .trim();
+        const nombre = nombreElemento
+            ? nombreElemento.value.trim()
+            : "";
 
+        const telefono = telefonoElemento
+            ? telefonoElemento.value.trim()
+            : "";
 
-        const telefono =
-            document
-                .getElementById("telefono")
-                .value
-                .trim();
-
-
-        const ministerio =
-            document
-                .getElementById("ministerio")
-                .value;
-
+        const ministerio = ministerioElemento
+            ? ministerioElemento.value
+            : "";
 
         const foto =
-            fotoInput &&
-            fotoInput.files
+            fotoInput && fotoInput.files
                 ? fotoInput.files[0]
                 : null;
 
-
-        // ------------------------------
-        // DÍAS
-        // ------------------------------
-
         const diasSeleccionados = [];
 
-
         document
-            .querySelectorAll(
-                'input[name="dias"]:checked'
-            )
-            .forEach(
-                function (checkbox) {
-
-                    diasSeleccionados.push(
-                        checkbox.value
-                    );
-
-                }
-            );
-
-
-        // ------------------------------
-        // VALIDACIONES
-        // ------------------------------
+            .querySelectorAll('input[name="dias"]:checked')
+            .forEach(checkbox => {
+                diasSeleccionados.push(checkbox.value);
+            });
 
         if (!nombre) {
-
-            alert(
-                "Por favor, escriba el nombre del miembro."
-            );
-
+            alert("Por favor, escriba el nombre del miembro.");
             return;
         }
-
 
         if (!ministerio) {
-
-            alert(
-                "Por favor, seleccione el ministerio."
-            );
-
+            alert("Por favor, seleccione el ministerio.");
             return;
         }
 
-
-        if (
-            diasSeleccionados.length === 0
-        ) {
-
-            alert(
-                "Seleccione por lo menos un día de asistencia."
-            );
-
+        if (diasSeleccionados.length === 0) {
+            alert("Seleccione por lo menos un día de asistencia.");
             return;
         }
-
-
-        // ------------------------------
-        // FOTO
-        // ------------------------------
 
         let fotoUrl = null;
 
-
         if (foto) {
-
-            const extension =
-                obtenerExtension(
-                    foto.name
-                );
-
-
-            const nombreArchivo =
-                Date.now() +
-                "-" +
-                Math.random()
-                    .toString(36)
-                    .substring(2) +
-                "." +
-                extension;
-
-
-            const subida =
-                await supabaseClient
-                    .storage
-                    .from("Fotos-Miembros")
-                    .upload(
-                        nombreArchivo,
-                        foto
-                    );
-
-
-            if (subida.error) {
-
-                throw subida.error;
-
-            }
-
-
-            const publicUrl =
-                supabaseClient
-                    .storage
-                    .from("Fotos-Miembros")
-                    .getPublicUrl(
-                        nombreArchivo
-                    );
-
-
-            fotoUrl =
-                publicUrl
-                    .data
-                    .publicUrl;
-
+            fotoUrl = await subirFotoMiembro(foto, "nuevo");
         }
-
-
-        // ------------------------------
-        // DATOS DEL MIEMBRO
-        // ------------------------------
 
         const datosMiembro = {
-
-            nombre:
-                nombre,
-
-            telefono:
-                telefono,
-
-            ministerio:
-                ministerio,
-
-            foto_url:
-                fotoUrl,
-
-            lunes:
-                diasSeleccionados.includes(
-                    "lunes"
-                ),
-
-            martes:
-                diasSeleccionados.includes(
-                    "martes"
-                ),
-
-            miercoles:
-                diasSeleccionados.includes(
-                    "miercoles"
-                ),
-
-            jueves:
-                diasSeleccionados.includes(
-                    "jueves"
-                ),
-
-            viernes:
-                diasSeleccionados.includes(
-                    "viernes"
-                ),
-
-            sabado:
-                diasSeleccionados.includes(
-                    "sabado"
-                ),
-
-            domingo:
-                diasSeleccionados.includes(
-                    "domingo"
-                ),
-
-            activo:
-                true
-
+            nombre,
+            telefono,
+            ministerio,
+            foto_url: fotoUrl,
+            lunes: diasSeleccionados.includes("lunes"),
+            martes: diasSeleccionados.includes("martes"),
+            miercoles: diasSeleccionados.includes("miercoles"),
+            jueves: diasSeleccionados.includes("jueves"),
+            viernes: diasSeleccionados.includes("viernes"),
+            sabado: diasSeleccionados.includes("sabado"),
+            domingo: diasSeleccionados.includes("domingo"),
+            activo: true
         };
 
-
-        // ------------------------------
-        // INSERTAR
-        // ------------------------------
-
-        const resultado =
-            await supabaseClient
-                .from("miembros")
-                .insert(
-                    datosMiembro
-                );
-
+        const resultado = await supabaseClient
+            .from("miembros")
+            .insert(datosMiembro);
 
         if (resultado.error) {
-
             throw resultado.error;
-
         }
 
+        alert("✅ Miembro guardado correctamente.");
 
-        alert(
-            "✅ Miembro guardado correctamente."
-        );
-
-
-        memberForm.reset();
-
+        if (memberForm) {
+            memberForm.reset();
+        }
 
         if (preview) {
-
             preview.src = "";
-
-            preview.style.display =
-                "none";
-
+            preview.style.display = "none";
         }
 
-
         await cargarMiembros();
-
-
     } catch (error) {
-
-        console.error(
-            "Error guardando miembro:",
-            error
-        );
-
+        console.error("Error guardando miembro:", error);
 
         alert(
             "❌ No se pudo guardar el miembro.\n\n" +
             error.message
         );
-
-
     } finally {
-
         if (boton) {
-
             boton.disabled = false;
-
-            boton.textContent =
-                "💾 Guardar miembro";
-
+            boton.textContent = "💾 Guardar miembro";
         }
-
     }
-
 }
 
-
-// ==========================================================
-// OBTENER EXTENSIÓN
-// ==========================================================
-
-function obtenerExtension(
-    nombreArchivo
-) {
-
-    const partes =
-        nombreArchivo.split(".");
-
-
+function obtenerExtension(nombreArchivo) {
+    const partes = String(nombreArchivo || "").split(".");
     return (
         partes.length > 1
             ? partes.pop()
             : "jpg"
-    )
-        .toLowerCase();
-
+    ).toLowerCase();
 }
 
+async function subirFotoMiembro(archivo, prefijo) {
+    const extension = obtenerExtension(archivo.name);
 
-// ==========================================================
-// CARGAR MIEMBROS
-// ==========================================================
+    const nombreArchivo =
+        prefijo +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.random().toString(36).substring(2) +
+        "." +
+        extension;
 
-async function cargarMiembros() {
+    const subida = await supabaseClient
+        .storage
+        .from("Fotos-Miembros")
+        .upload(nombreArchivo, archivo);
 
-    if (!listaMiembros) {
-
-        return;
-
+    if (subida.error) {
+        throw subida.error;
     }
 
+    const publicUrl = supabaseClient
+        .storage
+        .from("Fotos-Miembros")
+        .getPublicUrl(nombreArchivo);
+
+    return publicUrl.data.publicUrl;
+}
+
+async function cargarMiembros() {
+    if (!listaMiembros) {
+        return;
+    }
 
     listaMiembros.innerHTML =
         '<p class="mensaje">⏳ Cargando miembros...</p>';
 
-
     try {
-
-        const resultado =
-            await supabaseClient
-                .from("miembros")
-                .select("*")
-                .eq(
-                    "activo",
-                    true
-                )
-                .order(
-                    "nombre",
-                    {
-                        ascending: true
-                    }
-                );
-
+        const resultado = await supabaseClient
+            .from("miembros")
+            .select("*")
+            .eq("activo", true)
+            .order("nombre", { ascending: true });
 
         if (resultado.error) {
-
             throw resultado.error;
-
         }
 
-
-        mostrarMiembros(
-            resultado.data || []
-        );
-
-
+        mostrarMiembros(resultado.data || []);
     } catch (error) {
-
-        console.error(
-            "Error cargando miembros:",
-            error
-        );
-
-
-        listaMiembros.innerHTML =
-            `
-            <p class="mensaje">
-                ❌ No se pudieron cargar los miembros.
-                <br><br>
-                ${escaparHTML(
-                    error.message
-                )}
-            </p>
-            `;
-
-    }
-
-}
-
-
-// ==========================================================
-// MOSTRAR MIEMBROS
-// ==========================================================
-
-function mostrarMiembros(
-    miembros
-) {
-
-    if (!listaMiembros) {
-
-        return;
-
-    }
-
-
-    if (
-        !miembros ||
-        miembros.length === 0
-    ) {
+        console.error("Error cargando miembros:", error);
 
         listaMiembros.innerHTML = `
             <p class="mensaje">
-                Todavía no hay miembros registrados.
+                ❌ No se pudieron cargar los miembros.
+                <br><br>
+                ${escaparHTML(error.message)}
             </p>
+        `;
+    }
+}
+
+// ==========================================
+// MOSTRAR MIEMBROS
+// ==========================================
+
+function mostrarMiembros(miembros) {
+
+    if (!listaMiembros) return;
+
+    const totalMiembros = Array.isArray(miembros)
+        ? miembros.length
+        : 0;
+
+const contadorTotal = document.getElementById("totalMiembros");
+
+if (contadorTotal) {
+    contadorTotal.textContent = totalMiembros;
+}
+    if (!miembros || miembros.length === 0) {
+
+        listaMiembros.innerHTML = `
+            <div class="miembros-lista-contenido">
+                <p class="mensaje">
+                    Todavía no hay miembros registrados.
+                </p>
+            </div>
+
         `;
 
         return;
-
     }
 
+    listaMiembros.innerHTML = `
+        <div class="miembros-lista-contenido"></div>
 
-    listaMiembros.innerHTML =
-        "";
+    `;
 
+    const contenedor =
+        listaMiembros.querySelector(
+            ".miembros-lista-contenido"
+        );
 
-    miembros.forEach(
-        function (miembro) {
+    if (!contenedor) return;
 
-            const dias =
-                obtenerDias(
-                    miembro
-                );
+    const puedeEditar =
+        rolUsuarioActual === "administrador" ||
+        rolUsuarioActual === "secretario";
 
+    miembros.forEach(function (miembro) {
 
-            const tarjeta =
-                document.createElement(
-                    "div"
-                );
+        const dias = obtenerDias(miembro);
 
+        const tarjeta =
+            document.createElement("div");
 
-            tarjeta.className =
-                "miembro-card";
+        tarjeta.className = "miembro-card";
 
-
-            // ------------------------------
-            // FOTO
-            // ------------------------------
-
-            let fotoHTML = "";
-
-
-            if (miembro.foto_url) {
-
-                fotoHTML = `
-                    <img
-                        src="${escaparHTML(
-                            miembro.foto_url
-                        )}"
-                        alt="Foto de ${escaparHTML(
-                            miembro.nombre
-                        )}"
-                        class="miembro-foto"
-                    >
-                `;
-
-            } else {
-
-                fotoHTML = `
-                    <div class="miembro-foto foto-default">
-                        👤
-                    </div>
-                `;
-
-            }
-
-
-            // ------------------------------
-            // TARJETA
-            // ------------------------------
-
-            tarjeta.innerHTML = `
-
-                ${fotoHTML}
-
-                <div class="miembro-info">
-
-                    <h3>
-                        ${escaparHTML(
-                            miembro.nombre
-                        )}
-                    </h3>
-
-                    <p>
-                        ⛪
-                        ${escaparHTML(
-                            miembro.ministerio ||
-                            "Sin ministerio"
-                        )}
-                    </p>
-
-                    <p>
-                        📞
-                        ${escaparHTML(
-                            miembro.telefono ||
-                            "Sin teléfono"
-                        )}
-                    </p>
-
-                    <p>
-                        📅
-                        ${escaparHTML(
-                            dias ||
-                            "Sin días registrados"
-                        )}
-                    </p>
-
+        const fotoHTML = miembro.foto_url
+            ? `
+                <img
+                    src="${escaparHTML(miembro.foto_url)}"
+                    alt="Foto de ${escaparHTML(miembro.nombre)}"
+                    class="miembro-foto"
+                >
+            `
+            : `
+                <div class="miembro-foto foto-default">
+                    👤
                 </div>
-
-                <div class="miembro-acciones">
-
-                    <button
-                        type="button"
-                        class="btn-editar"
-                        data-id="${miembro.id}"
-                    >
-                        ✏️ Editar
-                    </button>
-
-                </div>
-
             `;
 
+        tarjeta.innerHTML = `
+            ${fotoHTML}
+
+            <div class="miembro-info">
+
+                <h3>
+                    ${escaparHTML(
+                        miembro.nombre || ""
+                    )}
+                </h3>
+
+                <p>
+                    ⛪
+                    ${escaparHTML(
+                        miembro.ministerio ||
+                        "Sin ministerio"
+                    )}
+                </p>
+
+                <p>
+                    📞
+                    ${escaparHTML(
+                        miembro.telefono ||
+                        "Sin teléfono"
+                    )}
+                </p>
+
+                <p>
+                    📅
+                    ${escaparHTML(
+                        dias ||
+                        "Sin días registrados"
+                    )}
+                </p>
+
+            </div>
+
+            ${
+                puedeEditar
+                    ? `
+                        <div class="miembro-acciones">
+                            <button
+                                type="button"
+                                class="btn-editar"
+                                data-id="${escaparHTML(
+                                    miembro.id
+                                )}"
+                            >
+                                ✏️ Editar
+                            </button>
+                        </div>
+                    `
+                    : ""
+            }
+        `;
+
+        if (puedeEditar) {
 
             const botonEditar =
-                tarjeta.querySelector(
-                    ".btn-editar"
-                );
-
+                tarjeta.querySelector(".btn-editar");
 
             if (botonEditar) {
 
                 botonEditar.addEventListener(
                     "click",
                     function () {
-
-                        abrirModalEditar(
-                            miembro.id
-                        );
-
+                        abrirModalEditar(miembro.id);
                     }
                 );
-
             }
-
-
-            listaMiembros.appendChild(
-                tarjeta
-            );
-
         }
-    );
 
+        contenedor.appendChild(tarjeta);
+    });
 }
-
-
-// ==========================================================
-// ESCAPAR HTML
-// ==========================================================
 
 function escaparHTML(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined
-    ) {
-
+    if (valor === null || valor === undefined) {
         return "";
-
     }
-
 
     return String(valor)
-
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-
-        .replace(
-            /</g,
-            "&lt;"
-        )
-
-        .replace(
-            />/g,
-            "&gt;"
-        )
-
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
+// Compatibilidad: algunas partes de asistencia usan escapeHTML.
+function escapeHTML(valor) {
+    return escaparHTML(valor);
+}
 
-// ==========================================================
-// OBTENER DÍAS
-// ==========================================================
-
-function obtenerDias(
-    miembro
-) {
-
+function obtenerDias(miembro) {
     const dias = [];
 
+    if (miembro.lunes) dias.push("Lunes");
+    if (miembro.martes) dias.push("Martes");
+    if (miembro.miercoles) dias.push("Miércoles");
+    if (miembro.jueves) dias.push("Jueves");
+    if (miembro.viernes) dias.push("Viernes");
+    if (miembro.sabado) dias.push("Sábado");
+    if (miembro.domingo) dias.push("Domingo");
 
-    if (miembro.lunes) {
-
-        dias.push(
-            "Lunes"
-        );
-
-    }
-
-
-    if (miembro.martes) {
-
-        dias.push(
-            "Martes"
-        );
-
-    }
-
-
-    if (miembro.miercoles) {
-
-        dias.push(
-            "Miércoles"
-        );
-
-    }
-
-
-    if (miembro.jueves) {
-
-        dias.push(
-            "Jueves"
-        );
-
-    }
-
-
-    if (miembro.viernes) {
-
-        dias.push(
-            "Viernes"
-        );
-
-    }
-
-
-    if (miembro.sabado) {
-
-        dias.push(
-            "Sábado"
-        );
-
-    }
-
-
-    if (miembro.domingo) {
-
-        dias.push(
-            "Domingo"
-        );
-
-    }
-
-
-    return dias.join(
-        ", "
-    );
-
+    return dias.join(", ");
 }
-
-
-// ==========================================================
-// BUSCAR MIEMBROS
-// ==========================================================
 
 async function buscarMiembros() {
-
     if (!buscar) {
-
         return;
-
     }
 
-
-    const texto =
-        buscar.value
-            .trim();
-
+    const texto = buscar.value.trim();
 
     if (!texto) {
-
         await cargarMiembros();
-
         return;
-
     }
-
 
     try {
-
-        const resultado =
-            await supabaseClient
-                .from("miembros")
-                .select("*")
-                .eq(
-                    "activo",
-                    true
-                )
-                .ilike(
-                    "nombre",
-                    `%${texto}%`
-                )
-                .order(
-                    "nombre",
-                    {
-                        ascending: true
-                    }
-                );
-
+        const resultado = await supabaseClient
+            .from("miembros")
+            .select("*")
+            .eq("activo", true)
+            .ilike("nombre", `%${texto}%`)
+            .order("nombre", { ascending: true });
 
         if (resultado.error) {
-
             throw resultado.error;
-
         }
 
-
-        mostrarMiembros(
-            resultado.data || []
-        );
-
-
+        mostrarMiembros(resultado.data || []);
     } catch (error) {
-
-        console.error(
-            "Error buscando miembros:",
-            error
-        );
-
+        console.error("Error buscando miembros:", error);
     }
-
 }
-
 
 // ==========================================================
 // MODAL EDITAR
 // ==========================================================
 
 function inicializarModalEditar() {
-
-    modalEditar =
-        document.getElementById(
-            "modalEditar"
-        );
-
-
-    btnCerrarModal =
-        document.getElementById(
-            "btnCerrarModal"
-        );
-
-
-    btnCancelarEdicion =
-        document.getElementById(
-            "btnCancelarEdicion"
-        );
-
-
-    btnGuardarEdicion =
-        document.getElementById(
-            "btnGuardarEdicion"
-        );
-
-
-    editarId =
-        document.getElementById(
-            "editarId"
-        );
-
-
-    editarNombre =
-        document.getElementById(
-            "editarNombre"
-        );
-
-
-    editarTelefono =
-        document.getElementById(
-            "editarTelefono"
-        );
-
-
-    editarMinisterio =
-        document.getElementById(
-            "editarMinisterio"
-        );
-
-
-    editarFoto =
-        document.getElementById(
-            "editarFoto"
-        );
-
-
-    editarPreview =
-        document.getElementById(
-            "editarPreview"
-        );
-
-
-    formEditarMiembro =
-        document.getElementById(
-            "formEditarMiembro"
-        );
-
-
-    // ------------------------------
-    // CERRAR
-    // ------------------------------
+    modalEditar = document.getElementById("modalEditar");
+    btnCerrarModal = document.getElementById("btnCerrarModal");
+    btnCancelarEdicion = document.getElementById("btnCancelarEdicion");
+    btnGuardarEdicion = document.getElementById("btnGuardarEdicion");
+    editarId = document.getElementById("editarId");
+    editarNombre = document.getElementById("editarNombre");
+    editarTelefono = document.getElementById("editarTelefono");
+    editarMinisterio = document.getElementById("editarMinisterio");
+    editarFoto = document.getElementById("editarFoto");
+    editarPreview = document.getElementById("editarPreview");
+    formEditarMiembro = document.getElementById("formEditarMiembro");
 
     if (btnCerrarModal) {
-
-        btnCerrarModal.addEventListener(
-            "click",
-            cerrarModalEditar
-        );
-
+        btnCerrarModal.addEventListener("click", cerrarModalEditar);
     }
-
 
     if (btnCancelarEdicion) {
-
-        btnCancelarEdicion.addEventListener(
-            "click",
-            cerrarModalEditar
-        );
-
+        btnCancelarEdicion.addEventListener("click", cerrarModalEditar);
     }
-
-
-    // ------------------------------
-    // FOTO
-    // ------------------------------
 
     if (editarFoto) {
-
-        editarFoto.addEventListener(
-            "change",
-            vistaPreviaFotoEditar
-        );
-
+        editarFoto.addEventListener("change", vistaPreviaFotoEditar);
     }
 
-
-    // ------------------------------
-    // FORMULARIO
-    // ------------------------------
-
     if (formEditarMiembro) {
-
         formEditarMiembro.addEventListener(
             "submit",
             guardarCambiosMiembro
         );
-
     }
-
-
-    // ------------------------------
-    // CLIC FUERA
-    // ------------------------------
 
     if (modalEditar) {
-
-        modalEditar.addEventListener(
-            "click",
-            function (event) {
-
-                if (
-                    event.target ===
-                    modalEditar
-                ) {
-
-                    cerrarModalEditar();
-
-                }
-
+        modalEditar.addEventListener("click", event => {
+            if (event.target === modalEditar) {
+                cerrarModalEditar();
             }
-        );
-
+        });
     }
-
 }
 
+async function abrirModalEditar(id) {
 
-// ==========================================================
-// ABRIR MODAL EDITAR
-// ==========================================================
-
-async function abrirModalEditar(
-    id
-) {
+    if (
+        rolUsuarioActual !== "administrador" &&
+        rolUsuarioActual !== "secretario"
+    ) {
+        alert("❌ No tiene permisos para editar miembros.");
+        return;
+    }
 
     try {
-
-        const resultado =
-            await supabaseClient
-                .from("miembros")
-                .select("*")
-                .eq(
-                    "id",
-                    id
-                )
-                .single();
-
+        const resultado = await supabaseClient
+            .from("miembros")
+            .select("*")
+            .eq("id", id)
+            .single();
 
         if (resultado.error) {
-
             throw resultado.error;
-
         }
 
-
-        const miembro =
-            resultado.data;
-
+        const miembro = resultado.data;
 
         if (!miembro) {
-
-            alert(
-                "No se encontró el miembro."
-            );
-
+            alert("No se encontró el miembro.");
             return;
-
         }
 
-
-        editarId.value =
-            miembro.id;
-
-
-        editarNombre.value =
-            miembro.nombre || "";
-
-
-        editarTelefono.value =
-            miembro.telefono || "";
-
-
-        // ------------------------------
-        // MINISTERIO
-        // ------------------------------
+        if (editarId) editarId.value = miembro.id;
+        if (editarNombre) editarNombre.value = miembro.nombre || "";
+        if (editarTelefono) editarTelefono.value = miembro.telefono || "";
 
         const ministerioOriginal =
-            document.getElementById(
-                "ministerio"
-            );
-
+            document.getElementById("ministerio");
 
         if (
             ministerioOriginal &&
             editarMinisterio
         ) {
-
             editarMinisterio.innerHTML =
                 ministerioOriginal.innerHTML;
-
         }
 
-
-        editarMinisterio.value =
-            miembro.ministerio || "";
-
-
-        // ------------------------------
-        // DÍAS
-        // ------------------------------
+        if (editarMinisterio) {
+            editarMinisterio.value =
+                miembro.ministerio || "";
+        }
 
         document
-            .querySelectorAll(
-                'input[name="editarDias"]'
-            )
-            .forEach(
-                function (checkbox) {
-
-                    checkbox.checked =
-                        miembro[
-                            checkbox.value
-                        ] === true;
-
-                }
-            );
-
-
-        // ------------------------------
-        // FOTO
-        // ------------------------------
+            .querySelectorAll('input[name="editarDias"]')
+            .forEach(checkbox => {
+                checkbox.checked =
+                    miembro[checkbox.value] === true;
+            });
 
         if (editarFoto) {
-
-            editarFoto.value =
-                "";
-
+            editarFoto.value = "";
         }
 
-
-        if (
-            miembro.foto_url &&
-            editarPreview
-        ) {
-
-            editarPreview.src =
-                miembro.foto_url;
-
-            editarPreview.style.display =
-                "block";
-
-        } else if (editarPreview) {
-
-            editarPreview.src =
-                "";
-
-            editarPreview.style.display =
-                "none";
-
+        if (editarPreview) {
+            if (miembro.foto_url) {
+                editarPreview.src = miembro.foto_url;
+                editarPreview.style.display = "block";
+            } else {
+                editarPreview.src = "";
+                editarPreview.style.display = "none";
+            }
         }
-
-
-        // ------------------------------
-        // MOSTRAR MODAL
-        // ------------------------------
 
         if (modalEditar) {
-
-            modalEditar.classList.add(
-                "mostrar"
-            );
-
+            modalEditar.classList.add("mostrar");
         }
 
-
-        document.body.classList.add(
-            "modal-abierto"
-        );
-
-
+        document.body.classList.add("modal-abierto");
     } catch (error) {
-
-        console.error(
-            "Error cargando miembro:",
-            error
-        );
-
+        console.error("Error cargando miembro:", error);
 
         alert(
             "❌ No se pudo cargar el miembro.\n\n" +
             error.message
         );
-
     }
-
 }
-
-
-// ==========================================================
-// CERRAR MODAL
-// ==========================================================
 
 function cerrarModalEditar() {
-
     if (!modalEditar) {
-
         return;
-
     }
 
-
-    modalEditar.classList.remove(
-        "mostrar"
-    );
-
-
-    document.body.classList.remove(
-        "modal-abierto"
-    );
-
+    modalEditar.classList.remove("mostrar");
+    document.body.classList.remove("modal-abierto");
 
     if (formEditarMiembro) {
-
         formEditarMiembro.reset();
-
     }
-
 
     if (editarPreview) {
-
-        editarPreview.src =
-            "";
-
-        editarPreview.style.display =
-            "none";
-
+        editarPreview.src = "";
+        editarPreview.style.display = "none";
     }
-
 }
-
-
-// ==========================================================
-// VISTA PREVIA FOTO EDITAR
-// ==========================================================
 
 function vistaPreviaFotoEditar() {
-
-    if (
-        !editarFoto ||
-        !editarPreview
-    ) {
-
+    if (!editarFoto || !editarPreview) {
         return;
-
     }
 
-
-    const archivo =
-        editarFoto.files[0];
-
+    const archivo = editarFoto.files[0];
 
     if (!archivo) {
-
         return;
-
     }
 
+    const url = URL.createObjectURL(archivo);
 
-    const url =
-        URL.createObjectURL(
-            archivo
-        );
-
-
-    editarPreview.src =
-        url;
-
-
-    editarPreview.style.display =
-        "block";
-
+    editarPreview.src = url;
+    editarPreview.style.display = "block";
 }
 
-
-// ==========================================================
-// GUARDAR CAMBIOS DEL MIEMBRO
-// ==========================================================
-
-async function guardarCambiosMiembro(
-    event
-) {
-
+async function guardarCambiosMiembro(event) {
     event.preventDefault();
 
-
-    const id =
-        editarId.value;
-
-
-    const nombre =
-        editarNombre.value
-            .trim();
-
-
-    const telefono =
-        editarTelefono.value
-            .trim();
-
-
-    const ministerio =
-        editarMinisterio.value;
-
+    const id = editarId ? editarId.value : "";
+    const nombre = editarNombre
+        ? editarNombre.value.trim()
+        : "";
+    const telefono = editarTelefono
+        ? editarTelefono.value.trim()
+        : "";
+    const ministerio = editarMinisterio
+        ? editarMinisterio.value
+        : "";
 
     const foto =
-        editarFoto &&
-        editarFoto.files
+        editarFoto && editarFoto.files
             ? editarFoto.files[0]
             : null;
 
-
-    // ------------------------------
-    // VALIDACIONES
-    // ------------------------------
-
     if (!id) {
-
-        alert(
-            "No se encontró el ID del miembro."
-        );
-
+        alert("No se encontró el ID del miembro.");
         return;
-
     }
-
 
     if (!nombre) {
-
-        alert(
-            "Por favor, escriba el nombre."
-        );
-
+        alert("Por favor, escriba el nombre.");
         return;
-
     }
-
 
     if (!ministerio) {
-
-        alert(
-            "Por favor, seleccione el ministerio."
-        );
-
+        alert("Por favor, seleccione el ministerio.");
         return;
-
     }
 
+    const diasSeleccionados = [];
+
+    document
+        .querySelectorAll('input[name="editarDias"]:checked')
+        .forEach(checkbox => {
+            diasSeleccionados.push(checkbox.value);
+        });
+
+    if (diasSeleccionados.length === 0) {
+        alert("Seleccione por lo menos un día de asistencia.");
+        return;
+    }
 
     if (btnGuardarEdicion) {
-
-        btnGuardarEdicion.disabled =
-            true;
-
-        btnGuardarEdicion.textContent =
-            "⏳ Guardando...";
-
+        btnGuardarEdicion.disabled = true;
+        btnGuardarEdicion.textContent = "⏳ Guardando...";
     }
 
-
     try {
-
-        // ------------------------------
-        // DÍAS
-        // ------------------------------
-
-        const diasSeleccionados =
-            [];
-
-
-        document
-            .querySelectorAll(
-                'input[name="editarDias"]:checked'
-            )
-            .forEach(
-                function (checkbox) {
-
-                    diasSeleccionados.push(
-                        checkbox.value
-                    );
-
-                }
-            );
-
-
-        // ------------------------------
-        // DATOS
-        // ------------------------------
-
         const datosActualizar = {
-
-            nombre:
-                nombre,
-
-            telefono:
-                telefono,
-
-            ministerio:
-                ministerio,
-
-            lunes:
-                diasSeleccionados.includes(
-                    "lunes"
-                ),
-
-            martes:
-                diasSeleccionados.includes(
-                    "martes"
-                ),
-
-            miercoles:
-                diasSeleccionados.includes(
-                    "miercoles"
-                ),
-
-            jueves:
-                diasSeleccionados.includes(
-                    "jueves"
-                ),
-
-            viernes:
-                diasSeleccionados.includes(
-                    "viernes"
-                ),
-
-            sabado:
-                diasSeleccionados.includes(
-                    "sabado"
-                ),
-
-            domingo:
-                diasSeleccionados.includes(
-                    "domingo"
-                )
-
+            nombre,
+            telefono,
+            ministerio,
+            lunes: diasSeleccionados.includes("lunes"),
+            martes: diasSeleccionados.includes("martes"),
+            miercoles: diasSeleccionados.includes("miercoles"),
+            jueves: diasSeleccionados.includes("jueves"),
+            viernes: diasSeleccionados.includes("viernes"),
+            sabado: diasSeleccionados.includes("sabado"),
+            domingo: diasSeleccionados.includes("domingo")
         };
 
-
-        // ------------------------------
-        // FOTO NUEVA
-        // ------------------------------
-
         if (foto) {
-
-            const extension =
-                obtenerExtension(
-                    foto.name
-                );
-
-
-            const nombreArchivo =
-                "editar-" +
-                Date.now() +
-                "-" +
-                Math.random()
-                    .toString(36)
-                    .substring(2) +
-                "." +
-                extension;
-
-
-            const subida =
-                await supabaseClient
-                    .storage
-                    .from("Fotos-Miembros")
-                    .upload(
-                        nombreArchivo,
-                        foto
-                    );
-
-
-            if (subida.error) {
-
-                throw subida.error;
-
-            }
-
-
-            const publicUrl =
-                supabaseClient
-                    .storage
-                    .from("Fotos-Miembros")
-                    .getPublicUrl(
-                        nombreArchivo
-                    );
-
-
             datosActualizar.foto_url =
-                publicUrl
-                    .data
-                    .publicUrl;
-
+                await subirFotoMiembro(foto, "editar");
         }
 
-
-        // ------------------------------
-        // ACTUALIZAR
-        // ------------------------------
-
-        const resultado =
-            await supabaseClient
-                .from("miembros")
-                .update(
-                    datosActualizar
-                )
-                .eq(
-                    "id",
-                    id
-                );
-
+        const resultado = await supabaseClient
+            .from("miembros")
+            .update(datosActualizar)
+            .eq("id", id);
 
         if (resultado.error) {
-
             throw resultado.error;
-
         }
 
-
-        alert(
-            "✅ Miembro actualizado correctamente."
-        );
-
+        alert("✅ Miembro actualizado correctamente.");
 
         cerrarModalEditar();
-
-
         await cargarMiembros();
 
-
-        // ------------------------------
-        // ACTUALIZAR ASISTENCIA
-        // ------------------------------
-
         if (
-            typeof cargarListaAsistencia ===
-            "function"
+            typeof cargarListaAsistencia === "function" &&
+            fechaAsistencia &&
+            servicioAsistencia &&
+            fechaAsistencia.value &&
+            servicioAsistencia.value
         ) {
-
-            if (
-                fechaAsistencia &&
-                servicioAsistencia &&
-                fechaAsistencia.value &&
-                servicioAsistencia.value
-            ) {
-
-                await cargarListaAsistencia();
-
-            }
-
+            await cargarListaAsistencia();
         }
 
-
-        // ------------------------------
-        // ACTUALIZAR REPORTE
-        // ------------------------------
-
-        if (
-            mesReporte &&
-            mesReporte.value
-        ) {
-
+        if (mesReporte && mesReporte.value) {
             await cargarReporte();
-
         }
-
-
     } catch (error) {
-
-        console.error(
-            "Error actualizando miembro:",
-            error
-        );
-
+        console.error("Error actualizando miembro:", error);
 
         alert(
             "❌ No se pudo actualizar el miembro.\n\n" +
             error.message
         );
-
-
     } finally {
-
         if (btnGuardarEdicion) {
-
-            btnGuardarEdicion.disabled =
-                false;
-
-            btnGuardarEdicion.textContent =
-                "💾 Guardar cambios";
-
+            btnGuardarEdicion.disabled = false;
+            btnGuardarEdicion.textContent = "💾 Guardar cambios";
         }
-
     }
-
 }
 
-
-// ==========================================================
+// ==========================================
 // INICIALIZAR ASISTENCIA
-// ==========================================================
+// ==========================================
 
 function inicializarAsistencia() {
+    fechaAsistencia = document.getElementById("fechaAsistencia");
+    servicioAsistencia = document.getElementById("servicioAsistencia");
+    btnCargarAsistencia = document.getElementById("btnCargarAsistencia");
+    btnGuardarAsistencia = document.getElementById("btnGuardarAsistencia");
+    listaAsistencia = document.getElementById("listaAsistencia");
 
-    fechaAsistencia =
-        document.getElementById(
-            "fechaAsistencia"
-        );
-
-
-    servicioAsistencia =
-        document.getElementById(
-            "servicioAsistencia"
-        );
-
-
-    btnCargarAsistencia =
-        document.getElementById(
-            "btnCargarAsistencia"
-        );
-
-
-    btnGuardarAsistencia =
-        document.getElementById(
-            "btnGuardarAsistencia"
-        );
-
-
-    listaAsistencia =
-        document.getElementById(
-            "listaAsistencia"
-        );
-
-
-    // ------------------------------
-    // FECHA DE HOY
-    // ------------------------------
-
-    if (fechaAsistencia) {
-
-        fechaAsistencia.value =
-            fechaHoy();
-
+    if (fechaAsistencia && !fechaAsistencia.value) {
+        fechaAsistencia.value = fechaHoy();
     }
-
-
-    // ------------------------------
-    // CARGAR
-    // ------------------------------
 
     if (btnCargarAsistencia) {
-
-        btnCargarAsistencia.addEventListener(
-            "click",
-            cargarListaAsistencia
-        );
-
+        btnCargarAsistencia.addEventListener("click", cargarListaAsistencia);
     }
-
-
-    // ------------------------------
-    // GUARDAR
-    // ------------------------------
 
     if (btnGuardarAsistencia) {
-
-        btnGuardarAsistencia.addEventListener(
-            "click",
-            guardarAsistencia
-        );
-
+        btnGuardarAsistencia.addEventListener("click", guardarAsistencia);
     }
 
-}
+    if (fechaAsistencia) {
+        fechaAsistencia.addEventListener("change", function () {
+            actualizarServiciosPorFecha();
 
-
-// ==========================================================
-// FECHA DE HOY
-// ==========================================================
-
-function fechaHoy() {
-
-    const ahora =
-        new Date();
-
-
-    const año =
-        ahora.getFullYear();
-
-
-    const mes =
-        String(
-            ahora.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    const dia =
-        String(
-            ahora.getDate()
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    return (
-        año +
-        "-" +
-        mes +
-        "-" +
-        dia
-    );
-
-}
-
-
-// ==========================================================
-// OBTENER DÍA DE FECHA
-// ==========================================================
-
-function obtenerDiaDeFecha(
-    fecha
-) {
-
-    const fechaObjeto =
-        new Date(
-            fecha +
-            "T12:00:00"
-        );
-
-
-    const dias = [
-
-        "domingo",
-        "lunes",
-        "martes",
-        "miercoles",
-        "jueves",
-        "viernes",
-        "sabado"
-
-    ];
-
-
-    return dias[
-        fechaObjeto.getDay()
-    ];
-
-}
-
-
-// ==========================================================
-// OBTENER DÍA DEL SERVICIO
-// ==========================================================
-
-function obtenerDiaDelServicio() {
-
-    if (!servicioAsistencia) {
-
-        return "";
-
+            if (listaAsistencia) {
+                listaAsistencia.innerHTML =
+                    '<p class="mensaje">Seleccione la fecha y el servicio para cargar la asistencia.</p>';
+            }
+        });
     }
 
+    actualizarServiciosPorFecha();
+}
 
-    const opcion =
-        servicioAsistencia.options[
-            servicioAsistencia.selectedIndex
-        ];
+// ==========================================
+// SERVICIOS SEGÚN EL DÍA
+// ==========================================
 
+function agregarEstilosAsistenciaPorMinisterio() {
+    if (document.getElementById("estilosAsistenciaMinisterios")) return;
 
-    if (!opcion) {
-
-        return "";
-
-    }
-
-
-    const texto =
-        (
-            opcion.textContent ||
-            ""
-        )
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        );
-
-
-    const valor =
-        (
-            opcion.value ||
-            ""
-        )
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(
-            /[\u0300-\u036f]/g,
-            ""
-        );
-
-
-    const textoCompleto =
-        texto +
-        " " +
-        valor;
-
-
-    const dias = [
-
-        "domingo",
-        "lunes",
-        "martes",
-        "miercoles",
-        "jueves",
-        "viernes",
-        "sabado"
-
-    ];
-
-
-    for (
-        const dia of dias
-    ) {
-
-        if (
-            textoCompleto.includes(
-                dia
-            )
-        ) {
-
-            return dia;
-
+    const style = document.createElement("style");
+    style.id = "estilosAsistenciaMinisterios";
+    style.textContent = `
+        .asistencia-ministerio {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 14px 0 6px;
+            padding: 7px 10px;
+            border-radius: 6px;
+            background: #e8eef5;
+            color: #1f4e79;
+            font-size: 14px;
+            border-left: 4px solid #1f4e79;
         }
 
-    }
-
-
-    return "";
-
-}
-
-
-// ==========================================================
-// VALIDAR FECHA + SERVICIO
-// ==========================================================
-
-function validarFechaServicio() {
-
-    if (
-        !fechaAsistencia ||
-        !servicioAsistencia
-    ) {
-
-        return true;
-
-    }
-
-
-    const fecha =
-        fechaAsistencia.value;
-
-
-    const servicio =
-        servicioAsistencia.value;
-
-
-    if (
-        !fecha ||
-        !servicio
-    ) {
-
-        return true;
-
-    }
-
-
-    const diaFecha =
-        obtenerDiaDeFecha(
-            fecha
-        );
-
-
-    const diaServicio =
-        obtenerDiaDelServicio();
-
-
-    console.log(
-        "Validación fecha/servicio:",
-        {
-            fecha:
-                fecha,
-
-            diaFecha:
-                diaFecha,
-
-            servicio:
-                servicio,
-
-            diaServicio:
-                diaServicio
-
+        .asistencia-ministerio:first-child {
+            margin-top: 0;
         }
-    );
-
-
-    // ------------------------------
-    // SERVICIO SIN DÍA
-    // ------------------------------
-
-    if (!diaServicio) {
-
-        return true;
-
-    }
-
-
-    // ------------------------------
-    // NO COINCIDE
-    // ------------------------------
-
-    if (
-        diaFecha !==
-        diaServicio
-    ) {
-
-        const diaFechaTexto =
-            diaFecha
-                .charAt(0)
-                .toUpperCase() +
-            diaFecha.slice(1);
-
-
-        const diaServicioTexto =
-            diaServicio
-                .charAt(0)
-                .toUpperCase() +
-            diaServicio.slice(1);
-
-
-        alert(
-
-            "⚠️ FECHA Y SERVICIO NO COINCIDEN\n\n" +
-
-            "📅 La fecha " +
-            fecha +
-            " corresponde a: " +
-            diaFechaTexto +
-
-            "\n\n" +
-
-            "🏛️ El servicio seleccionado corresponde a: " +
-            diaServicioTexto +
-
-            "\n\n" +
-
-            "Seleccione la fecha o el servicio correcto."
-
-        );
-
-
-        return false;
-
-    }
-
-
-    return true;
-
+    `;
+    document.head.appendChild(style);
 }
 
+function actualizarServiciosPorFecha() {
+    if (!fechaAsistencia || !servicioAsistencia) return;
 
-// ==========================================================
-// CARGAR LISTA DE ASISTENCIA
-// ==========================================================
+    const fecha = fechaAsistencia.value;
+    const valorAnterior = servicioAsistencia.value;
 
-async function cargarListaAsistencia() {
-
-    if (
-        !fechaAsistencia ||
-        !servicioAsistencia ||
-        !listaAsistencia
-    ) {
-
-        return;
-
-    }
-
-
-    const fecha =
-        fechaAsistencia.value;
-
-
-    const servicio =
-        servicioAsistencia.value;
-
-
-    // ------------------------------
-    // VALIDAR FECHA
-    // ------------------------------
+    servicioAsistencia.innerHTML = "<option value=\"\">Seleccione un servicio</option>";
 
     if (!fecha) {
-
-        alert(
-            "Seleccione la fecha de la asistencia."
-        );
-
+        servicioAsistencia.disabled = false;
         return;
-
     }
 
+    const fechaObjeto = new Date(fecha + "T12:00:00");
+    const diaSemana = fechaObjeto.getDay();
+    const servicios = SERVICIOS_POR_DIA[diaSemana] || [];
 
-    // ------------------------------
-    // VALIDAR SERVICIO
-    // ------------------------------
+    servicios.forEach(function (servicio) {
+        const option = document.createElement("option");
+        option.value = servicio.value;
+        option.textContent = servicio.label;
+        servicioAsistencia.appendChild(option);
+    });
+
+    if (servicios.some(function (s) { return s.value === valorAnterior; })) {
+        servicioAsistencia.value = valorAnterior;
+    } else if (servicios.length === 1) {
+        servicioAsistencia.value = servicios[0].value;
+    }
+
+    servicioAsistencia.disabled = servicios.length === 0;
+
+    if (servicios.length === 0) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "No hay servicio programado este día";
+        servicioAsistencia.appendChild(option);
+        servicioAsistencia.value = "";
+    }
+}
+
+// ==========================================
+// FECHA HOY
+// ==========================================
+
+function fechaHoy() {
+    const ahora = new Date();
+
+    const año = ahora.getFullYear();
+
+    const mes = String(
+        ahora.getMonth() + 1
+    ).padStart(2, "0");
+
+    const dia = String(
+        ahora.getDate()
+    ).padStart(2, "0");
+
+    return `${año}-${mes}-${dia}`;
+}
+
+// ==========================================
+// CARGAR ASISTENCIA
+// ==========================================
+
+async function cargarListaAsistencia() {
+    if (!fechaAsistencia || !servicioAsistencia || !listaAsistencia) {
+        return;
+    }
+
+    const fecha = fechaAsistencia.value;
+    const servicio = servicioAsistencia.value;
+
+    if (!fecha) {
+        alert("Seleccione la fecha de la asistencia.");
+        return;
+    }
 
     if (!servicio) {
-
-        alert(
-            "Seleccione el servicio o reunión."
-        );
-
+        alert("Seleccione el servicio o reunión.");
         return;
-
     }
 
+    const fechaObjetoValidacion = new Date(fecha + "T12:00:00");
+    const diaSemanaValidacion = fechaObjetoValidacion.getDay();
+    const serviciosPermitidos = SERVICIOS_POR_DIA[diaSemanaValidacion] || [];
 
-    // ------------------------------
-    // VALIDAR DÍA
-    // ------------------------------
-
-    if (
-        !validarFechaServicio()
-    ) {
-
+    if (!serviciosPermitidos.some(function (item) { return item.value === servicio; })) {
+        alert("El servicio seleccionado no corresponde al día de la semana elegido.");
+        actualizarServiciosPorFecha();
         return;
-
     }
-
 
     listaAsistencia.innerHTML =
         '<p class="mensaje">⏳ Cargando miembros...</p>';
 
-
     try {
-
-        // ==================================================
+        // --------------------------------------
         // MIEMBROS
-        // ==================================================
+        // --------------------------------------
 
-        const resultadoMiembros =
-            await supabaseClient
-                .from("miembros")
-                .select("*")
-                .eq(
-                    "activo",
-                    true
-                )
-                .order(
-                    "nombre",
-                    {
-                        ascending: true
-                    }
-                );
+        const {
+            data: miembros,
+            error: errorMiembros
+        } = await supabaseClient
+            .from("miembros")
+            .select("*")
+            .eq("activo", true)
+            .order("nombre", { ascending: true });
 
-
-        if (
-            resultadoMiembros.error
-        ) {
-
-            throw resultadoMiembros.error;
-
+        if (errorMiembros) {
+            throw errorMiembros;
         }
 
-
-        const miembros =
-            resultadoMiembros.data || [];
-
-
-        if (
-            miembros.length === 0
-        ) {
-
+        if (!miembros || miembros.length === 0) {
             listaAsistencia.innerHTML =
-                `
-                <p class="sin-miembros">
-                    No hay miembros registrados.
-                </p>
-                `;
-
+                '<p class="sin-miembros">No hay miembros registrados.</p>';
             return;
-
         }
 
-
-        // ==================================================
+        // --------------------------------------
         // ASISTENCIAS EXISTENTES
-        // ==================================================
+        // --------------------------------------
 
-        const resultadoAsistencias =
-            await supabaseClient
-                .from("asistencias")
-                .select(
-                    "miembro_id, fecha, servicio, asistio"
-                )
-                .eq(
-                    "fecha",
-                    fecha
-                )
-                .eq(
-                    "servicio",
-                    servicio
-                );
+        const {
+            data: asistenciasExistentes,
+            error: errorAsistencias
+        } = await supabaseClient
+            .from("asistencias")
+            .select("miembro_id")
+            .eq("fecha", fecha)
+            .eq("servicio", servicio);
 
-
-        if (
-            resultadoAsistencias.error
-        ) {
-
-            throw resultadoAsistencias.error;
-
+        if (errorAsistencias) {
+            throw errorAsistencias;
         }
 
-
-        const asistenciasExistentes =
-            resultadoAsistencias.data || [];
-
-
-        // ==================================================
-        // CONJUNTO DE ASISTENTES
-        // ==================================================
-
-        const idsAsistentes =
-            new Set();
-
-
-        asistenciasExistentes.forEach(
-            function (registro) {
-
-                if (
-                    registro.asistio === true
-                ) {
-
-                    idsAsistentes.add(
-                        Number(
-                            registro.miembro_id
-                        )
-                    );
-
+        const idsAsistentes = new Set(
+            (asistenciasExistentes || []).map(
+                function (a) {
+                    return a.miembro_id;
                 }
-
-            }
+            )
         );
 
-
-        // ==================================================
+        // --------------------------------------
         // DÍA DE LA SEMANA
-        // ==================================================
+        // --------------------------------------
 
-        const nombreDia =
-            obtenerDiaDeFecha(
-                fecha
-            );
-
-
-        // ==================================================
-        // ORDENAR
-        // ==================================================
-
-        miembros.sort(
-            function (a, b) {
-
-                const aEsperado =
-                    a[nombreDia]
-                        ? 1
-                        : 0;
-
-
-                const bEsperado =
-                    b[nombreDia]
-                        ? 1
-                        : 0;
-
-
-                if (
-                    aEsperado !==
-                    bEsperado
-                ) {
-
-                    return (
-                        bEsperado -
-                        aEsperado
-                    );
-
-                }
-
-
-                return a.nombre.localeCompare(
-                    b.nombre
-                );
-
-            }
+        const fechaObjeto = new Date(
+            fecha + "T12:00:00"
         );
 
+        const diaSemana = fechaObjeto.getDay();
 
-        // ==================================================
+        const nombreDia = [
+            "domingo",
+            "lunes",
+            "martes",
+            "miercoles",
+            "jueves",
+            "viernes",
+            "sabado"
+        ][diaSemana];
+
+        // --------------------------------------
+        // ORDENAR: PRIMERO LOS QUE NORMALMENTE
+        // ASISTEN ESE DÍA
+        // --------------------------------------
+
+        miembros.sort(function (a, b) {
+            const ministerioA = (a.ministerio || "Sin ministerio").trim().toLocaleLowerCase();
+            const ministerioB = (b.ministerio || "Sin ministerio").trim().toLocaleLowerCase();
+
+            const ministerioCompare = ministerioA.localeCompare(ministerioB, "es", {
+                sensitivity: "base"
+            });
+
+            if (ministerioCompare !== 0) {
+                return ministerioCompare;
+            }
+
+            const aEsperado = a[nombreDia] ? 1 : 0;
+            const bEsperado = b[nombreDia] ? 1 : 0;
+
+            if (aEsperado !== bEsperado) {
+                return bEsperado - aEsperado;
+            }
+
+            return (a.nombre || "").localeCompare(
+                b.nombre || "",
+                "es",
+                { sensitivity: "base" }
+            );
+        });
+
+        // --------------------------------------
         // MOSTRAR
-        // ==================================================
+        // --------------------------------------
 
-        listaAsistencia.innerHTML =
-            "";
+        listaAsistencia.innerHTML = "";
 
+        let ultimoMinisterio = null;
 
-        miembros.forEach(
-            function (miembro) {
+        miembros.forEach(function (miembro) {
+            const ministerioActual = (miembro.ministerio || "Sin ministerio").trim() || "Sin ministerio";
 
-                const asistio =
-                    idsAsistentes.has(
-                        Number(
-                            miembro.id
-                        )
-                    );
+            if (ministerioActual !== ultimoMinisterio) {
+                const encabezadoMinisterio = document.createElement("div");
+                encabezadoMinisterio.className = "asistencia-ministerio";
+                encabezadoMinisterio.innerHTML = `
+                    <span>👥</span>
+                    <strong>${escapeHTML(ministerioActual)}</strong>
+                `;
+                listaAsistencia.appendChild(encabezadoMinisterio);
+                ultimoMinisterio = ministerioActual;
+            }
 
+            const asistio =
+                idsAsistentes.has(miembro.id);
 
-                const normalmenteViene =
-                    miembro[
-                        nombreDia
-                    ] === true;
+            const normalmenteViene =
+                miembro[nombreDia] === true;
 
+            const fila =
+                document.createElement("label");
 
-                const fila =
-                    document.createElement(
-                        "label"
-                    );
+            fila.className =
+                "asistencia-miembro";
 
-
-                fila.className =
-                    "asistencia-miembro";
-
-
-                let fotoHTML = "";
-
-
-                if (
-                    miembro.foto_url
-                ) {
-
-                    fotoHTML = `
+            const fotoHTML =
+                miembro.foto_url
+                    ? `
                         <img
-                            src="${escaparHTML(
-                                miembro.foto_url
-                            )}"
+                            src="${escapeHTML(miembro.foto_url)}"
                             class="asistencia-foto"
                             alt="Foto"
                         >
-                    `;
-
-                } else {
-
-                    fotoHTML = `
+                    `
+                    : `
                         <div
                             class="asistencia-foto"
                             style="
@@ -3017,1383 +1612,621 @@ async function cargarListaAsistencia() {
                         </div>
                     `;
 
-                }
+            fila.innerHTML = `
+                <input
+                    type="checkbox"
+                    class="check-asistencia"
+                    data-miembro-id="${miembro.id}"
+                    ${asistio ? "checked" : ""}
+                >
 
+                ${fotoHTML}
 
-                fila.innerHTML = `
+                <div class="asistencia-info">
+                    <strong>
+                        ${escapeHTML(miembro.nombre || "")}
+                    </strong>
 
-                    <input
-                        type="checkbox"
-                        class="check-asistencia"
-                        data-miembro-id="${miembro.id}"
-                        ${
-                            asistio
-                                ? "checked"
-                                : ""
-                        }
-                    >
+                    <small>
+                        ${escapeHTML(
+                            miembro.ministerio ||
+                            "Sin ministerio"
+                        )}
+                    </small>
 
-                    ${fotoHTML}
-
-                    <div class="asistencia-info">
-
-                        <strong>
-                            ${escaparHTML(
-                                miembro.nombre
-                            )}
-                        </strong>
-
-                        <small>
-                            ${escaparHTML(
-                                miembro.ministerio ||
-                                "Sin ministerio"
-                            )}
-                        </small>
-
-                        ${
-                            normalmenteViene
-                                ?
-                                `
+                    ${
+                        normalmenteViene
+                            ? `
                                 <div class="asistira-label">
                                     ✓ Normalmente asiste este día
                                 </div>
-                                `
-                                :
-                                ""
-                        }
-
-                    </div>
-
-                `;
-
-
-                listaAsistencia.appendChild(
-                    fila
-                );
-
-            }
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "Error cargando asistencia:",
-            error
-        );
-
-
-        listaAsistencia.innerHTML =
-            `
-            <p class="mensaje">
-
-                ❌ Error cargando la asistencia.
-
-                <br><br>
-
-                ${escaparHTML(
-                    error.message
-                )}
-
-            </p>
+                            `
+                            : ""
+                    }
+                </div>
             `;
 
-    }
+            listaAsistencia.appendChild(fila);
+        });
 
+    } catch (error) {
+        console.error("Error cargando asistencia:", error);
+
+        listaAsistencia.innerHTML =
+            `<p class="mensaje">
+                ❌ Error cargando la asistencia.<br><br>
+                ${escapeHTML(error.message || error)}
+            </p>`;
+    }
 }
 
 
-// ==========================================================
+// ==========================================
 // GUARDAR ASISTENCIA
-// PASO 31
-// ==========================================================
+// ==========================================
 
 async function guardarAsistencia() {
-
-    if (
-        !fechaAsistencia ||
-        !servicioAsistencia ||
-        !btnGuardarAsistencia
-    ) {
-
+    if (!fechaAsistencia || !servicioAsistencia || !listaAsistencia) {
         return;
-
     }
 
-
-    const fecha =
-        fechaAsistencia.value;
-
-
-    const servicio =
-        servicioAsistencia.value;
-
-
-    // ------------------------------
-    // VALIDACIONES
-    // ------------------------------
+    const fecha = fechaAsistencia.value;
+    const servicio = servicioAsistencia.value;
 
     if (!fecha) {
-
-        alert(
-            "Seleccione la fecha."
-        );
-
+        alert("Seleccione la fecha.");
         return;
-
     }
-
 
     if (!servicio) {
-
-        alert(
-            "Seleccione el servicio."
-        );
-
+        alert("Seleccione el servicio.");
         return;
-
     }
 
+    const fechaObjetoValidacion = new Date(fecha + "T12:00:00");
+    const diaSemanaValidacion = fechaObjetoValidacion.getDay();
+    const serviciosPermitidos = SERVICIOS_POR_DIA[diaSemanaValidacion] || [];
 
-    if (
-        !validarFechaServicio()
-    ) {
-
+    if (!serviciosPermitidos.some(function (item) { return item.value === servicio; })) {
+        alert("El servicio seleccionado no corresponde al día de la semana elegido.");
+        actualizarServiciosPorFecha();
         return;
-
     }
-
-
-    // ------------------------------
-    // CHECKBOXES
-    // ------------------------------
 
     const checkboxes =
-        document.querySelectorAll(
-            ".check-asistencia"
-        );
+        document.querySelectorAll(".check-asistencia");
 
-
-    if (
-        checkboxes.length === 0
-    ) {
-
-        alert(
-            "Primero debe cargar los miembros."
-        );
-
+    if (checkboxes.length === 0) {
+        alert("Primero debe cargar los miembros.");
         return;
-
     }
 
-
-    // ------------------------------
-    // BOTÓN
-    // ------------------------------
-
-    btnGuardarAsistencia.disabled =
-        true;
-
-
-    btnGuardarAsistencia.textContent =
-        "⏳ Guardando...";
-
+    if (btnGuardarAsistencia) {
+        btnGuardarAsistencia.disabled = true;
+        btnGuardarAsistencia.textContent = "⏳ Guardando...";
+    }
 
     try {
+        // --------------------------------------
+        // BORRAR REGISTROS ANTERIORES
+        // --------------------------------------
 
-        // ==================================================
+        const { error: errorDelete } =
+            await supabaseClient
+                .from("asistencias")
+                .delete()
+                .eq("fecha", fecha)
+                .eq("servicio", servicio);
+
+        if (errorDelete) {
+            throw errorDelete;
+        }
+
+        // --------------------------------------
         // CREAR REGISTROS
-        // ==================================================
+        // --------------------------------------
 
         const registros = [];
 
-
-        checkboxes.forEach(
-            function (checkbox) {
-
-                const miembroId =
-                    Number(
-                        checkbox.dataset.miembroId
-                    );
-
-
-                if (
-                    !miembroId
-                ) {
-
-                    return;
-
-                }
-
-
+        checkboxes.forEach(function (checkbox) {
+            if (checkbox.checked) {
                 registros.push({
-
-                    miembro_id:
-                        miembroId,
-
-                    fecha:
-                        fecha,
-
-                    servicio:
-                        servicio,
-
-                    asistio:
-                        checkbox.checked
-
+                    miembro_id: Number(
+                        checkbox.dataset.miembroId
+                    ),
+                    fecha: fecha,
+                    servicio: servicio,
+                    asistio: true
                 });
-
             }
-        );
+        });
 
+        // --------------------------------------
+        // INSERTAR
+        // --------------------------------------
 
-        if (
-            registros.length === 0
-        ) {
+        if (registros.length > 0) {
+            const { error: errorInsert } =
+                await supabaseClient
+                    .from("asistencias")
+                    .insert(registros);
 
-            alert(
-                "No hay miembros para guardar."
-            );
-
-            return;
-
+            if (errorInsert) {
+                throw errorInsert;
+            }
         }
-
-
-        // ==================================================
-        // GUARDAR / ACTUALIZAR
-        // ==================================================
-        //
-        // La restricción creada en el PASO 30
-        // permite usar:
-        //
-        // miembro_id + fecha + servicio
-        //
-        // como combinación única.
-        //
-        // upsert:
-        //
-        // - crea si no existe
-        // - actualiza si existe
-        //
-        // ==================================================
-
-        const resultado =
-            await supabaseClient
-                .from("asistencias")
-                .upsert(
-                    registros,
-                    {
-                        onConflict:
-                            "miembro_id,fecha,servicio"
-                    }
-                );
-
-
-        if (
-            resultado.error
-        ) {
-
-            throw resultado.error;
-
-        }
-
-
-        // ==================================================
-        // CONTAR ASISTENTES
-        // ==================================================
-
-        const cantidadAsistentes =
-            registros.filter(
-                function (registro) {
-
-                    return (
-                        registro.asistio === true
-                    );
-
-                }
-            ).length;
-
-
-        const cantidadNoAsistieron =
-            registros.length -
-            cantidadAsistentes;
-
-
-        // ==================================================
-        // MENSAJE
-        // ==================================================
 
         alert(
-
             "✅ Asistencia guardada correctamente.\n\n" +
-
-            "📅 Fecha: " +
+            "Fecha: " +
             fecha +
-
             "\n" +
-
-            "🏛️ Servicio: " +
+            "Servicio: " +
             servicio +
-
-            "\n\n" +
-
-            "👥 Miembros registrados: " +
-            registros.length +
-
             "\n" +
-
-            "✅ Asistieron: " +
-            cantidadAsistentes +
-
-            "\n" +
-
-            "❌ No asistieron: " +
-            cantidadNoAsistieron
-
+            "Asistieron: " +
+            registros.length
         );
-
-
-        // ==================================================
-        // RECARGAR ASISTENCIA
-        // ==================================================
 
         await cargarListaAsistencia();
 
-
-        // ==================================================
-        // ACTUALIZAR REPORTE
-        // ==================================================
-
-        if (
-            mesReporte &&
-            mesReporte.value
-        ) {
-
-            await cargarReporte();
-
-        }
-
-
     } catch (error) {
-
-        console.error(
-            "Error guardando asistencia:",
-            error
-        );
-
+        console.error("Error guardando asistencia:", error);
 
         alert(
-
             "❌ No se pudo guardar la asistencia.\n\n" +
-
-            error.message
-
+            (error.message || error)
         );
 
-
     } finally {
-
-        btnGuardarAsistencia.disabled =
-            false;
-
-
-        btnGuardarAsistencia.textContent =
-            "💾 Guardar asistencia";
-
+        if (btnGuardarAsistencia) {
+            btnGuardarAsistencia.disabled = false;
+            btnGuardarAsistencia.textContent =
+                "💾 Guardar asistencia";
+        }
     }
-
 }
 
 
+
+
 // ==========================================================
-// INICIALIZAR REPORTE
+// OBTENER DÍA DE LA SEMANA DESDE UNA FECHA
+// ==========================================================
+// Devuelve el nombre exacto de la propiedad usada en la tabla miembros.
+function obtenerDiaDeFecha(fecha) {
+    if (!fecha) {
+        return "";
+    }
+
+    const fechaObjeto = new Date(String(fecha) + "T12:00:00");
+
+    if (Number.isNaN(fechaObjeto.getTime())) {
+        return "";
+    }
+
+    const dias = [
+        "domingo",
+        "lunes",
+        "martes",
+        "miercoles",
+        "jueves",
+        "viernes",
+        "sabado"
+    ];
+
+    return dias[fechaObjeto.getDay()];
+}
+
+// ==========================================================
+// REPORTE MENSUAL
 // ==========================================================
 
 function inicializarReporte() {
-
-    mesReporte =
-        document.getElementById(
-            "mesReporte"
-        );
-
-
-    btnVerReporte =
-        document.getElementById(
-            "btnVerReporte"
-        );
-
-
+    mesReporte = document.getElementById("mesReporte");
+    btnVerReporte = document.getElementById("btnVerReporte");
     resultadoReporte =
-        document.getElementById(
-            "resultadoReporte"
-        );
-
-
+        document.getElementById("resultadoReporte");
     resumenReporte =
-        document.getElementById(
-            "resumenReporte"
-        );
+        document.getElementById("resumenReporte");
 
-
-    // ------------------------------
-    // MES ACTUAL
-    // ------------------------------
-
-    if (mesReporte) {
-
-        mesReporte.value =
-            mesActual();
-
+    if (mesReporte && !mesReporte.value) {
+        mesReporte.value = mesActual();
     }
 
-
-    // ------------------------------
-    // BOTÓN
-    // ------------------------------
-
     if (btnVerReporte) {
-
         btnVerReporte.addEventListener(
             "click",
             cargarReporte
         );
-
     }
-
 }
-
-
-// ==========================================================
-// MES ACTUAL
-// ==========================================================
 
 function mesActual() {
+    const ahora = new Date();
 
-    const ahora =
-        new Date();
+    const año = ahora.getFullYear();
 
+    const mes = String(
+        ahora.getMonth() + 1
+    ).padStart(2, "0");
 
-    const año =
-        ahora.getFullYear();
-
-
-    const mes =
-        String(
-            ahora.getMonth() + 1
-        ).padStart(
-            2,
-            "0"
-        );
-
-
-    return (
-        año +
-        "-" +
-        mes
-    );
-
+    return `${año}-${mes}`;
 }
 
-
-// ==========================================================
-// REPORTE MENSUAL
-// PASO 29 - VERSIÓN CORREGIDA
-// ==========================================================
-
 async function cargarReporte() {
-
     if (
         !mesReporte ||
         !btnVerReporte ||
         !resultadoReporte ||
         !resumenReporte
     ) {
-
         return;
-
     }
 
-
-    const mes =
-        mesReporte.value;
-
+    const mes = mesReporte.value;
 
     if (!mes) {
-
-        alert(
-            "Seleccione un mes."
-        );
-
+        alert("Seleccione un mes.");
         return;
-
     }
 
+    btnVerReporte.disabled = true;
+    btnVerReporte.textContent = "⏳ Cargando...";
 
-    btnVerReporte.disabled =
-        true;
-
-
-    btnVerReporte.textContent =
-        "⏳ Cargando...";
-
-
-    resultadoReporte.innerHTML =
-        `
+    resultadoReporte.innerHTML = `
         <p class="mensaje">
             ⏳ Generando reporte...
         </p>
-        `;
+    `;
 
-
-    resumenReporte.innerHTML =
-        "";
-
+    resumenReporte.innerHTML = "";
 
     try {
+        const partesMes = mes.split("-");
 
-        // ==================================================
-        // 1. CALCULAR RANGO DEL MES
-        // ==================================================
+        const año = Number(partesMes[0]);
+        const numeroMes = Number(partesMes[1]);
 
-        const partesMes =
-            mes.split("-");
+        if (
+            !Number.isInteger(año) ||
+            !Number.isInteger(numeroMes) ||
+            numeroMes < 1 ||
+            numeroMes > 12
+        ) {
+            throw new Error("El mes seleccionado no es válido.");
+        }
 
-
-        const año =
-            Number(
-                partesMes[0]
-            );
-
-
-        const numeroMes =
-            Number(
-                partesMes[1]
-            );
-
-
-        const inicioMes =
-            mes +
-            "-01";
-
+        const inicioMes = `${mes}-01`;
 
         const ultimoDia =
-            new Date(
-                año,
-                numeroMes,
-                0
-            ).getDate();
-
+            new Date(año, numeroMes, 0).getDate();
 
         const finMes =
-            mes +
-            "-" +
-            String(
-                ultimoDia
-            ).padStart(
-                2,
-                "0"
-            );
+            `${mes}-${String(ultimoDia).padStart(2, "0")}`;
 
+        const resultadoMiembros = await supabaseClient
+            .from("miembros")
+            .select("*")
+            .eq("activo", true)
+            .order("nombre", { ascending: true });
 
-        console.log(
-            "Reporte mensual:",
-            {
-                mes:
-                    mes,
-
-                inicio:
-                    inicioMes,
-
-                fin:
-                    finMes
-
-            }
-        );
-
-
-        // ==================================================
-        // 2. CARGAR MIEMBROS ACTIVOS
-        // ==================================================
-
-        const resultadoMiembros =
-            await supabaseClient
-                .from("miembros")
-                .select("*")
-                .eq(
-                    "activo",
-                    true
-                )
-                .order(
-                    "nombre",
-                    {
-                        ascending: true
-                    }
-                );
-
-
-        if (
-            resultadoMiembros.error
-        ) {
-
+        if (resultadoMiembros.error) {
             throw resultadoMiembros.error;
-
         }
 
+        const miembros = resultadoMiembros.data || [];
 
-        const miembros =
-            resultadoMiembros.data || [];
+        const resultadoAsistencias = await supabaseClient
+            .from("asistencias")
+            .select(
+                "miembro_id, fecha, servicio, asistio"
+            )
+            .gte("fecha", inicioMes)
+            .lte("fecha", finMes)
+            .order("fecha", { ascending: true });
 
-
-        // ==================================================
-        // 3. CARGAR ASISTENCIAS DEL MES
-        // ==================================================
-
-        const resultadoAsistencias =
-            await supabaseClient
-                .from("asistencias")
-                .select(
-                    "miembro_id, fecha, servicio, asistio"
-                )
-                .gte(
-                    "fecha",
-                    inicioMes
-                )
-                .lte(
-                    "fecha",
-                    finMes
-                )
-                .order(
-                    "fecha",
-                    {
-                        ascending: true
-                    }
-                );
-
-
-        if (
-            resultadoAsistencias.error
-        ) {
-
+        if (resultadoAsistencias.error) {
             throw resultadoAsistencias.error;
-
         }
-
 
         const asistencias =
             resultadoAsistencias.data || [];
 
+        // Cada combinación fecha + servicio es una reunión.
+        const reunionesMap = new Map();
 
-        // ==================================================
-        // 4. IDENTIFICAR REUNIONES ÚNICAS
-        // ==================================================
-        //
-        // IMPORTANTE:
-        //
-        // Una reunión existe si hay registros de asistencia,
-        // aunque todos tengan asistio = false.
-        //
-        // Esto permite que una reunión donde nadie asistió
-        // siga apareciendo en el reporte.
-        //
-        // ==================================================
-
-        const reunionesMap =
-            new Map();
-
-
-        asistencias.forEach(
-            function (registro) {
-
-                if (
-                    !registro.fecha ||
-                    !registro.servicio
-                ) {
-
-                    return;
-
-                }
-
-
-                const clave =
-                    registro.fecha +
-                    "|" +
-                    registro.servicio;
-
-
-                if (
-                    !reunionesMap.has(
-                        clave
-                    )
-                ) {
-
-                    reunionesMap.set(
-                        clave,
-                        {
-                            fecha:
-                                registro.fecha,
-
-                            servicio:
-                                registro.servicio
-                        }
-                    );
-
-                }
-
+        asistencias.forEach(registro => {
+            if (!registro.fecha || !registro.servicio) {
+                return;
             }
-        );
 
+            const clave =
+                `${registro.fecha}|${registro.servicio}`;
+
+            if (!reunionesMap.has(clave)) {
+                reunionesMap.set(clave, {
+                    fecha: registro.fecha,
+                    servicio: registro.servicio
+                });
+            }
+        });
 
         const reuniones =
-            Array.from(
-                reunionesMap.values()
-            );
+            Array.from(reunionesMap.values());
 
+        const asistenciasReales = new Set();
 
-        const totalReuniones =
-            reuniones.length;
+        asistencias.forEach(registro => {
+            if (registro.asistio !== true) {
+                return;
+            }
 
+            const clave =
+                `${Number(registro.miembro_id)}|` +
+                `${registro.fecha}|` +
+                `${registro.servicio}`;
 
-        // ==================================================
-        // 5. CREAR SET DE ASISTENCIAS REALES
-        // ==================================================
+            asistenciasReales.add(clave);
+        });
 
-        const asistenciasReales =
-            new Set();
+        const resultados = miembros.map(miembro => {
+            let reunionesEsperadas = 0;
+            let reunionesAsistidas = 0;
+            let reunionesAusentes = 0;
 
+            reuniones.forEach(reunion => {
+                const dia =
+                    obtenerDiaDeFecha(reunion.fecha);
 
-        asistencias.forEach(
-            function (registro) {
+                const esperaba =
+                    miembro[dia] === true;
 
-                if (
-                    registro.asistio !== true
-                ) {
-
+                if (!esperaba) {
                     return;
-
                 }
 
+                reunionesEsperadas++;
 
                 const clave =
-                    Number(
-                        registro.miembro_id
-                    ) +
-                    "|" +
-                    registro.fecha +
-                    "|" +
-                    registro.servicio;
+                    `${Number(miembro.id)}|` +
+                    `${reunion.fecha}|` +
+                    `${reunion.servicio}`;
 
-
-                asistenciasReales.add(
-                    clave
-                );
-
-            }
-        );
-
-
-        // ==================================================
-        // 6. CALCULAR CADA MIEMBRO
-        // ==================================================
-
-        const resultados =
-            miembros.map(
-                function (miembro) {
-
-                    let reunionesEsperadas =
-                        0;
-
-
-                    let reunionesAsistidas =
-                        0;
-
-
-                    let reunionesAusentes =
-                        0;
-
-
-                    // --------------------------------------
-                    // RECORRER REUNIONES
-                    // --------------------------------------
-
-                    reuniones.forEach(
-                        function (reunion) {
-
-                            const dia =
-                                obtenerDiaDeFecha(
-                                    reunion.fecha
-                                );
-
-
-                            // ------------------------------
-                            // ¿DEBÍA ASISTIR?
-                            // ------------------------------
-
-                            const esperaba =
-                                miembro[dia] === true;
-
-
-                            if (!esperaba) {
-
-                                return;
-
-                            }
-
-
-                            reunionesEsperadas++;
-
-
-                            // ------------------------------
-                            // ¿ASISTIÓ?
-                            // ------------------------------
-
-                            const clave =
-                                Number(
-                                    miembro.id
-                                ) +
-                                "|" +
-                                reunion.fecha +
-                                "|" +
-                                reunion.servicio;
-
-
-                            if (
-                                asistenciasReales.has(
-                                    clave
-                                )
-                            ) {
-
-                                reunionesAsistidas++;
-
-                            } else {
-
-                                reunionesAusentes++;
-
-                            }
-
-                        }
-                    );
-
-
-                    // ==================================================
-                    // PORCENTAJE
-                    // ==================================================
-
-                    let porcentaje =
-                        0;
-
-
-                    if (
-                        reunionesEsperadas > 0
-                    ) {
-
-                        porcentaje =
-                            Math.round(
-                                (
-                                    reunionesAsistidas /
-                                    reunionesEsperadas
-                                ) *
-                                100
-                            );
-
-                    }
-
-
-                    if (
-                        porcentaje > 100
-                    ) {
-
-                        porcentaje =
-                            100;
-
-                    }
-
-
-                    return {
-
-                        miembro:
-                            miembro,
-
-                        esperadas:
-                            reunionesEsperadas,
-
-                        asistencias:
-                            reunionesAsistidas,
-
-                        ausencias:
-                            reunionesAusentes,
-
-                        porcentaje:
-                            porcentaje
-
-                    };
-
+                if (asistenciasReales.has(clave)) {
+                    reunionesAsistidas++;
+                } else {
+                    reunionesAusentes++;
                 }
-            );
+            });
 
+            const porcentaje =
+                reunionesEsperadas > 0
+                    ? Math.min(
+                        100,
+                        Math.round(
+                            (
+                                reunionesAsistidas /
+                                reunionesEsperadas
+                            ) * 100
+                        )
+                    )
+                    : 0;
 
-        // ==================================================
-        // 7. PROMEDIO GENERAL
-        // ==================================================
+            return {
+                miembro,
+                esperadas: reunionesEsperadas,
+                asistencias: reunionesAsistidas,
+                ausencias: reunionesAusentes,
+                porcentaje
+            };
+        });
 
-        const totalMiembros =
-            miembros.length;
-
+        const totalMiembros = miembros.length;
 
         const sumaPorcentajes =
             resultados.reduce(
-                function (
-                    total,
-                    resultado
-                ) {
-
-                    return (
-                        total +
-                        resultado.porcentaje
-                    );
-
-                },
+                (total, resultado) =>
+                    total + resultado.porcentaje,
                 0
             );
 
-
         const promedio =
             totalMiembros > 0
-                ?
-                Math.round(
-                    sumaPorcentajes /
-                    totalMiembros
+                ? Math.round(
+                    sumaPorcentajes / totalMiembros
                 )
-                :
-                0;
-
-
-        // ==================================================
-        // 8. MOSTRAR RESUMEN
-        // ==================================================
+                : 0;
 
         resumenReporte.innerHTML = `
-
             <div class="resumen-card">
-
                 <span class="numero">
                     ${totalMiembros}
                 </span>
-
                 <span class="texto">
                     Miembros activos
                 </span>
-
             </div>
 
-
             <div class="resumen-card">
-
                 <span class="numero">
-                    ${totalReuniones}
+                    ${reuniones.length}
                 </span>
-
                 <span class="texto">
                     Reuniones registradas
                 </span>
-
             </div>
 
-
             <div class="resumen-card">
-
                 <span class="numero">
                     ${promedio}%
                 </span>
-
                 <span class="texto">
                     Promedio de asistencia
                 </span>
-
             </div>
-
         `;
 
-
-        // ==================================================
-        // 9. SIN MIEMBROS
-        // ==================================================
-
-        if (
-            resultados.length === 0
-        ) {
-
+        if (resultados.length === 0) {
             resultadoReporte.innerHTML = `
-
                 <p class="mensaje">
-
                     No hay miembros registrados.
-
                 </p>
-
             `;
-
             return;
-
         }
 
+        resultadoReporte.innerHTML = "";
 
-        // ==================================================
-        // 10. MOSTRAR RESULTADOS
-        // ==================================================
+        resultados.forEach(resultado => {
+            const miembro = resultado.miembro;
+            const porcentaje = resultado.porcentaje;
 
-        resultadoReporte.innerHTML =
-            "";
+            let clasePorcentaje = "porcentaje-sin-datos";
+            let claseEstado = "estado-sin-datos";
+            let textoEstado = "Sin datos";
 
+            if (resultado.esperadas === 0) {
+                textoEstado = "Sin reuniones esperadas";
+            } else if (porcentaje >= 80) {
+                clasePorcentaje = "porcentaje-alto";
+                claseEstado = "estado-alto";
+                textoEstado = "Buena asistencia";
+            } else if (porcentaje >= 50) {
+                clasePorcentaje = "porcentaje-medio";
+                claseEstado = "estado-medio";
+                textoEstado = "Asistencia regular";
+            } else {
+                clasePorcentaje = "porcentaje-bajo";
+                claseEstado = "estado-bajo";
+                textoEstado = "Baja asistencia";
+            }
 
-        resultados.forEach(
-            function (resultado) {
+            const tarjeta =
+                document.createElement("div");
 
-                const miembro =
-                    resultado.miembro;
+            tarjeta.className = "reporte-miembro";
 
-
-                const porcentaje =
-                    resultado.porcentaje;
-
-
-                // ------------------------------
-                // ESTADO
-                // ------------------------------
-
-                let clasePorcentaje =
-                    "porcentaje-sin-datos";
-
-
-                let claseEstado =
-                    "estado-sin-datos";
-
-
-                let textoEstado =
-                    "Sin datos";
-
-
-                if (
-                    resultado.esperadas === 0
-                ) {
-
-                    textoEstado =
-                        "Sin reuniones esperadas";
-
-                } else if (
-                    porcentaje >= 80
-                ) {
-
-                    clasePorcentaje =
-                        "porcentaje-alto";
-
-                    claseEstado =
-                        "estado-alto";
-
-                    textoEstado =
-                        "Buena asistencia";
-
-                } else if (
-                    porcentaje >= 50
-                ) {
-
-                    clasePorcentaje =
-                        "porcentaje-medio";
-
-                    claseEstado =
-                        "estado-medio";
-
-                    textoEstado =
-                        "Asistencia regular";
-
-                } else {
-
-                    clasePorcentaje =
-                        "porcentaje-bajo";
-
-                    claseEstado =
-                        "estado-bajo";
-
-                    textoEstado =
-                        "Baja asistencia";
-
-                }
-
-
-                // ==================================================
-                // TARJETA
-                // ==================================================
-
-                const tarjeta =
-                    document.createElement(
-                        "div"
-                    );
-
-
-                tarjeta.className =
-                    "reporte-miembro";
-
-
-                // ==================================================
-                // FOTO
-                // ==================================================
-
-                if (
-                    miembro.foto_url
-                ) {
-
-                    tarjeta.innerHTML = `
-
-                        <img
-                            src="${escaparHTML(
-                                miembro.foto_url
-                            )}"
-                            alt="Foto de ${escaparHTML(
-                                miembro.nombre
-                            )}"
-                            class="reporte-foto"
-                        >
-
-                    `;
-
-                } else {
-
-                    tarjeta.innerHTML = `
-
-                        <div
-                            class="reporte-foto"
-                            style="
-                                display:flex;
-                                align-items:center;
-                                justify-content:center;
-                                background:#e9eef3;
-                                font-size:25px;
-                            "
-                        >
-                            👤
-                        </div>
-
-                    `;
-
-                }
-
-
-                // ==================================================
-                // INFORMACIÓN
-                // ==================================================
-
-                tarjeta.innerHTML += `
-
-                    <div class="reporte-info">
-
-                        <h3>
-                            ${escaparHTML(
-                                miembro.nombre
-                            )}
-                        </h3>
-
-
-                        <p>
-                            ⛪
-                            ${escaparHTML(
-                                miembro.ministerio ||
-                                "Sin ministerio"
-                            )}
-                        </p>
-
-
-                        <p>
-                            📅
-                            ${escaparHTML(
-                                obtenerDias(
-                                    miembro
-                                ) ||
-                                "Sin días registrados"
-                            )}
-                        </p>
-
+            const fotoHTML = miembro.foto_url
+                ? `
+                    <img
+                        src="${escaparHTML(miembro.foto_url)}"
+                        alt="Foto de ${escaparHTML(miembro.nombre)}"
+                        class="reporte-foto"
+                    >
+                `
+                : `
+                    <div
+                        class="reporte-foto"
+                        style="
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            background:#e9eef3;
+                            font-size:25px;
+                        "
+                    >
+                        👤
                     </div>
-
-
-                    <div class="reporte-estadistica">
-
-                        <div
-                            class="reporte-porcentaje ${clasePorcentaje}"
-                        >
-                            ${porcentaje}%
-                        </div>
-
-
-                        <div class="reporte-detalle">
-
-                            ${resultado.asistencias}
-
-                            de
-
-                            ${resultado.esperadas}
-
-                            reuniones esperadas
-
-                        </div>
-
-
-                        <div class="reporte-detalle">
-
-                            ${resultado.ausencias}
-
-                            ausencia${
-                                resultado.ausencias === 1
-                                    ? ""
-                                    : "s"
-                            }
-
-                        </div>
-
-
-                        <span
-                            class="estado-asistencia ${claseEstado}"
-                        >
-                            ${textoEstado}
-                        </span>
-
-                    </div>
-
                 `;
 
+            tarjeta.innerHTML = `
+                ${fotoHTML}
 
-                resultadoReporte.appendChild(
-                    tarjeta
-                );
+                <div class="reporte-info">
+                    <h3>
+                        ${escaparHTML(miembro.nombre)}
+                    </h3>
 
-            }
-        );
+                    <p>
+                        ⛪
+                        ${escaparHTML(
+                            miembro.ministerio ||
+                            "Sin ministerio"
+                        )}
+                    </p>
 
+                    <p>
+                        📅
+                        ${escaparHTML(
+                            obtenerDias(miembro) ||
+                            "Sin días registrados"
+                        )}
+                    </p>
+                </div>
 
-        // ==================================================
-        // CONSOLA
-        // ==================================================
+                <div class="reporte-estadistica">
+                    <div
+                        class="reporte-porcentaje ${clasePorcentaje}"
+                    >
+                        ${porcentaje}%
+                    </div>
 
-        console.log(
-            "Reporte generado:",
-            {
-                miembros:
-                    totalMiembros,
+                    <div class="reporte-detalle">
+                        ${resultado.asistencias}
+                        de
+                        ${resultado.esperadas}
+                        reuniones esperadas
+                    </div>
 
-                reuniones:
-                    totalReuniones,
+                    <div class="reporte-detalle">
+                        ${resultado.ausencias}
+                        ausencia${
+                            resultado.ausencias === 1
+                                ? ""
+                                : "s"
+                        }
+                    </div>
 
-                promedio:
-                    promedio,
+                    <span
+                        class="estado-asistencia ${claseEstado}"
+                    >
+                        ${textoEstado}
+                    </span>
+                </div>
+            `;
 
-                resultados:
-                    resultados
+            resultadoReporte.appendChild(tarjeta);
+        });
 
-            }
-        );
-
-
+        console.log("📊 Reporte generado:", {
+            miembros: totalMiembros,
+            reuniones: reuniones.length,
+            promedio
+        });
     } catch (error) {
-
-        console.error(
-            "Error generando reporte:",
-            error
-        );
-
+        console.error("Error generando reporte:", error);
 
         resultadoReporte.innerHTML = `
-
             <p class="mensaje">
-
                 ❌ No se pudo generar el reporte.
-
                 <br><br>
-
-                ${escaparHTML(
-                    error.message
-                )}
-
+                ${escaparHTML(error.message)}
             </p>
-
         `;
-
     } finally {
-
-        btnVerReporte.disabled =
-            false;
-
-
-        btnVerReporte.textContent =
-            "📊 Ver reporte";
-
+        btnVerReporte.disabled = false;
+        btnVerReporte.textContent = "📊 Ver reporte";
     }
-
 }
 
-
 // ==========================================================
-// INICIO DE LA APLICACIÓN
-// ==========================================================
-
-let aplicacionIniciada = false;
-
-
-// ==========================================================
-// INICIAR APLICACIÓN DESPUÉS DEL LOGIN
-// ==========================================================
-
-function iniciarAplicacionUnaVez() {
-
-    if (aplicacionIniciada) {
-
-        return;
-
-    }
-
-    aplicacionIniciada = true;
-
-    console.log(
-        "🚀 Iniciando aplicación..."
-    );
-
-    iniciarAplicacion();
-
-}
-
-
-// ==========================================================
-// INICIAR CUANDO CARGUE EL HTML
+// INICIO
 // ==========================================================
 
 async function iniciarSistema() {
-
-    console.log(
-        "🔐 Iniciando sistema..."
-    );
-
-    // Primero inicializamos la autenticación
+    console.log("🔐 Iniciando sistema...");
     await inicializarAutenticacion();
-
 }
 
-
-// ==========================================================
-// ESPERAR A QUE CARGUE EL HTML
-// ==========================================================
-
-if (
-    document.readyState === "loading"
-) {
-
+if (document.readyState === "loading") {
     document.addEventListener(
         "DOMContentLoaded",
         iniciarSistema
     );
-
 } else {
-
     iniciarSistema();
-
 }
-
 
 // ==========================================================
 // FIN DE app.js
