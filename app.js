@@ -46,10 +46,10 @@ let btnCerrarSesion;
 const SERVICIOS_POR_DIA = {
     0: [{ value: "Culto Dominical", label: "Culto Dominical" }],
     1: [],
-    2: [{ value: "Reunión", label: "Reunión" }],
+    2: [{ value: "Culto Martes Especial", label: "Culto Martes Especial" }],
     3: [{ value: "Oración de Jóvenes - Casa de Amigos", label: "Oración de Jóvenes - Casa de Amigos" }],
     4: [{ value: "Escuela Bíblica", label: "Escuela Bíblica" }],
-    5: [{ value: "Reunión", label: "Reunión" }],
+    5: [{ value: "Culto Viernes Especial", label: "Culto Viernes Especial" }],
     6: [{ value: "Culto de Adolescentes", label: "Culto de Adolescentes" }]
 };
 
