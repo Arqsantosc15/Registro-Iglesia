@@ -46,10 +46,10 @@ let btnCerrarSesion;
 const SERVICIOS_POR_DIA = {
     0: [{ value: "Culto Dominical", label: "Culto Dominical" }],
     1: [],
-    2: [{ value: "Culto Martes Especial", label: "Culto Martes Especial" }],
+    2: [{ value: "Reunión", label: "Reunión" }],
     3: [{ value: "Oración de Jóvenes - Casa de Amigos", label: "Oración de Jóvenes - Casa de Amigos" }],
     4: [{ value: "Escuela Bíblica", label: "Escuela Bíblica" }],
-    5: [{ value: "Culto Viernes Especial", label: "Culto Viernes Especial" }],
+    5: [{ value: "Reunión", label: "Reunión" }],
     6: [{ value: "Culto de Adolescentes", label: "Culto de Adolescentes" }]
 };
 
@@ -236,7 +236,8 @@ async function cargarPerfilUsuario(usuario) {
             "pastor",
             "lider",
             "líder",
-            "miembro"
+            "miembro",
+            "multimedia"
         ];
 
         if (!rolesPermitidos.includes(rol)) {
@@ -307,6 +308,10 @@ function esRolMiembro() {
     return rolUsuarioActual === "miembro";
 }
 
+function esRolMultimedia() {
+    return rolUsuarioActual === "multimedia";
+}
+
 function aplicarMinisterioSegunRol() {
     const ministerioElemento = document.getElementById("ministerio");
     if (!ministerioElemento) return;
@@ -318,6 +323,40 @@ function aplicarMinisterioSegunRol() {
     } else {
         ministerioElemento.disabled = false;
         ministerioElemento.title = "";
+    }
+}
+
+function actualizarCampoIglesiaVisita(selectId, campoId, inputId) {
+    const select = document.getElementById(selectId);
+    const campo = document.getElementById(campoId);
+    const input = document.getElementById(inputId);
+    if (!select || !campo || !input) return;
+
+    const esVisita = String(select.value || "").trim().toLocaleLowerCase() === "visita";
+    campo.style.display = esVisita ? "block" : "none";
+    input.required = esVisita;
+
+    if (!esVisita) {
+        input.value = "";
+    }
+}
+
+function configurarCamposVisita() {
+    const ministerio = document.getElementById("ministerio");
+    const editarMinisterio = document.getElementById("editarMinisterio");
+
+    if (ministerio) {
+        ministerio.addEventListener("change", () => {
+            actualizarCampoIglesiaVisita("ministerio", "campoIglesiaVisita", "iglesiaVisita");
+        });
+        actualizarCampoIglesiaVisita("ministerio", "campoIglesiaVisita", "iglesiaVisita");
+    }
+
+    if (editarMinisterio) {
+        editarMinisterio.addEventListener("change", () => {
+            actualizarCampoIglesiaVisita("editarMinisterio", "campoEditarIglesiaVisita", "editarIglesiaVisita");
+        });
+        actualizarCampoIglesiaVisita("editarMinisterio", "campoEditarIglesiaVisita", "editarIglesiaVisita");
     }
 }
 
@@ -387,7 +426,8 @@ function mostrarSistema() {
             secretario: "Secretario",
             pastor: "Pastor",
             lider: ministerioUsuarioActual ? `Líder de ${ministerioUsuarioActual}` : "Líder",
-            miembro: "Miembro"
+            miembro: "Miembro",
+            multimedia: "Multimedia"
         };
         rolUsuario.textContent = nombresRoles[rolUsuarioActual] || rolUsuarioActual;
     }
@@ -436,6 +476,15 @@ function mostrarSistema() {
         [seccionNuevoMiembro, seccionMiembrosRegistrados, seccionControlAsistencia, seccionReporte]
             .forEach(e => { if (e) e.style.display = ""; });
         [formularioMiembro, listaMiembrosElemento, botonCargarAsistencia, botonGuardarAsistencia, listaAsistenciaElemento]
+            .forEach(e => { if (e) e.style.display = ""; });
+        return;
+    }
+
+    if (rolUsuarioActual === "multimedia") {
+        // MULTIMEDIA: puede crear y editar miembros, pero no asistencia ni reportes.
+        [seccionNuevoMiembro, seccionMiembrosRegistrados]
+            .forEach(e => { if (e) e.style.display = ""; });
+        [formularioMiembro, listaMiembrosElemento]
             .forEach(e => { if (e) e.style.display = ""; });
         return;
     }
@@ -575,6 +624,7 @@ function iniciarAplicacionUnaVez() {
     agregarEstilosAsistenciaPorMinisterio();
     inicializarReporte();
     inicializarModalEditar();
+    configurarCamposVisita();
 }
 
 // ==========================================================
@@ -652,6 +702,11 @@ async function guardarMiembro(event) {
             ? (ministerioUsuarioActual || "")
             : (ministerioElemento ? ministerioElemento.value : "");
 
+        const iglesiaVisitaElemento = document.getElementById("iglesiaVisita");
+        const iglesia_origen = ministerio === "Visita"
+            ? (iglesiaVisitaElemento ? iglesiaVisitaElemento.value.trim() : "")
+            : null;
+
         const foto =
             fotoInput && fotoInput.files
                 ? fotoInput.files[0]
@@ -680,6 +735,11 @@ async function guardarMiembro(event) {
             return;
         }
 
+        if (ministerio === "Visita" && !iglesia_origen) {
+            alert("Por favor, escriba la iglesia de donde viene la visita.");
+            return;
+        }
+
         let fotoUrl = null;
 
         if (foto) {
@@ -690,6 +750,7 @@ async function guardarMiembro(event) {
             nombre,
             telefono,
             ministerio,
+            iglesia_origen,
             foto_url: fotoUrl,
             lunes: diasSeleccionados.includes("lunes"),
             martes: diasSeleccionados.includes("martes"),
@@ -845,7 +906,8 @@ if (contadorTotal) {
 
     const puedeEditar =
         rolUsuarioActual === "administrador" ||
-        rolUsuarioActual === "secretario";
+        rolUsuarioActual === "secretario" ||
+        rolUsuarioActual === "multimedia";
 
     miembros.forEach(function (miembro) {
 
@@ -1053,7 +1115,7 @@ function inicializarModalEditar() {
 
 async function abrirModalEditar(id) {
 
-    if (!esRolAdministrativo()) {
+    if (!esRolAdministrativo() && !esRolMultimedia()) {
         alert("❌ No tiene permisos para editar miembros.");
         return;
     }
@@ -1095,6 +1157,12 @@ async function abrirModalEditar(id) {
             editarMinisterio.value =
                 miembro.ministerio || "";
         }
+
+        const editarIglesiaVisita = document.getElementById("editarIglesiaVisita");
+        if (editarIglesiaVisita) {
+            editarIglesiaVisita.value = miembro.iglesia_origen || "";
+        }
+        actualizarCampoIglesiaVisita("editarMinisterio", "campoEditarIglesiaVisita", "editarIglesiaVisita");
 
         document
             .querySelectorAll('input[name="editarDias"]')
@@ -1170,6 +1238,11 @@ function vistaPreviaFotoEditar() {
 async function guardarCambiosMiembro(event) {
     event.preventDefault();
 
+    if (!esRolAdministrativo() && !esRolMultimedia()) {
+        alert("❌ No tiene permisos para editar miembros.");
+        return;
+    }
+
     const id = editarId ? editarId.value : "";
     const nombre = editarNombre
         ? editarNombre.value.trim()
@@ -1180,6 +1253,10 @@ async function guardarCambiosMiembro(event) {
     const ministerio = editarMinisterio
         ? editarMinisterio.value
         : "";
+    const editarIglesiaVisita = document.getElementById("editarIglesiaVisita");
+    const iglesia_origen = ministerio === "Visita"
+        ? (editarIglesiaVisita ? editarIglesiaVisita.value.trim() : "")
+        : null;
 
     const foto =
         editarFoto && editarFoto.files
@@ -1214,6 +1291,11 @@ async function guardarCambiosMiembro(event) {
         return;
     }
 
+    if (ministerio === "Visita" && !iglesia_origen) {
+        alert("Por favor, escriba la iglesia de donde viene la visita.");
+        return;
+    }
+
     if (btnGuardarEdicion) {
         btnGuardarEdicion.disabled = true;
         btnGuardarEdicion.textContent = "⏳ Guardando...";
@@ -1224,6 +1306,7 @@ async function guardarCambiosMiembro(event) {
             nombre,
             telefono,
             ministerio,
+            iglesia_origen,
             lunes: diasSeleccionados.includes("lunes"),
             martes: diasSeleccionados.includes("martes"),
             miercoles: diasSeleccionados.includes("miercoles"),
@@ -1986,22 +2069,61 @@ async function cargarReporte() {
             let reunionesEsperadas = 0;
             let reunionesAsistidas = 0;
             let reunionesAusentes = 0;
+            let asistenciasExtra = 0;
 
             reuniones.forEach(reunion => {
-                const dia = obtenerDiaDeFecha(reunion.fecha);
-                if (miembro[dia] !== true) return;
 
-                reunionesEsperadas++;
-                const clave = `${Number(miembro.id)}|${reunion.fecha}|${reunion.servicio}`;
-                if (asistenciasReales.has(clave)) reunionesAsistidas++;
-                else reunionesAusentes++;
-            });
+    const dia =
+        obtenerDiaDeFecha(reunion.fecha);
+
+    const clave =
+        `${Number(miembro.id)}|${reunion.fecha}|${reunion.servicio}`;
+
+    const asistioRealmente =
+        asistenciasReales.has(clave);
+
+    const esDiaHabitual =
+        miembro[dia] === true;
+
+
+    // =====================================================
+    // DÍA HABITUAL
+    // =====================================================
+
+    if (esDiaHabitual) {
+
+        reunionesEsperadas++;
+
+        if (asistioRealmente) {
+
+            reunionesAsistidas++;
+
+        } else {
+
+            reunionesAusentes++;
+        }
+
+        return;
+    }
+
+
+    // =====================================================
+    // DÍA NO HABITUAL
+    // =====================================================
+
+    if (asistioRealmente) {
+
+        reunionesAsistidas++;
+
+        asistenciasExtra++;
+    }
+});
 
             const porcentaje = reunionesEsperadas > 0
                 ? Math.min(100, Math.round((reunionesAsistidas / reunionesEsperadas) * 100))
                 : 0;
 
-            return { miembro, esperadas: reunionesEsperadas, asistencias: reunionesAsistidas, ausencias: reunionesAusentes, porcentaje };
+            return { miembro, esperadas: reunionesEsperadas, asistencias: reunionesAsistidas, ausencias: reunionesAusentes, asistenciasExtra, porcentaje };
         });
 
         const totalMiembros = miembros.length;
