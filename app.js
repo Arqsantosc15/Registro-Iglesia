@@ -2113,10 +2113,8 @@ async function cargarReporte() {
 
     if (asistioRealmente) {
 
-        reunionesAsistidas++;
-
-        asistenciasExtra++;
-    }
+    asistenciasExtra++;
+}
 });
 
             const porcentaje = reunionesEsperadas > 0
@@ -2184,9 +2182,27 @@ async function cargarReporte() {
                 </div>
                 <div class="reporte-estadistica">
                     <div class="reporte-porcentaje ${clasePorcentaje}">${porcentaje}%</div>
-                    <div class="reporte-detalle">${resultado.asistencias} de ${resultado.esperadas} reuniones esperadas</div>
-                    <div class="reporte-detalle">${resultado.ausencias} ausencia${resultado.ausencias === 1 ? "" : "s"}</div>
-                    <span class="estado-asistencia ${claseEstado}">${textoEstado}</span>
+                    <div class="reporte-detalle">
+    ${resultado.asistencias}
+    de
+    ${resultado.esperadas}
+    reuniones esperadas
+</div>
+
+<div class="reporte-detalle">
+    ${resultado.ausencias}
+    ausencia${resultado.ausencias === 1 ? "" : "s"}
+</div>
+
+<div class="reporte-detalle">
+    ${resultado.asistenciasExtra}
+    asistencia${resultado.asistenciasExtra === 1 ? "" : "s"}
+    extra
+</div>
+
+<span class="estado-asistencia ${claseEstado}">
+    ${textoEstado}
+</span>
                 </div>
             `;
 
@@ -2224,3 +2240,4 @@ if (document.readyState === "loading") {
 // ==========================================================
 // FIN DE app.js
 // ==========================================================
+
