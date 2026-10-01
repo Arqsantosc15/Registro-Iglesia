@@ -72,6 +72,9 @@ let btnGuardarEdicion;
 let editarId;
 let editarNombre;
 let editarTelefono;
+let editarDomicilio;
+let editarFechaNacimiento;
+let editarSexo;
 let editarMinisterio;
 let editarFoto;
 let editarPreview;
@@ -83,6 +86,18 @@ let servicioAsistencia;
 let btnCargarAsistencia;
 let btnGuardarAsistencia;
 let listaAsistencia;
+
+// Alertas de asistencia
+let seccionAlertasAsistencia;
+let listaAlertasAsistencia;
+let resumenAlertasAsistencia;
+let btnActualizarAlertasAsistencia;
+
+// Cumpleaños
+let seccionCumpleanosMiembros;
+let mesCumpleanos;
+let listaCumpleanos;
+let resumenCumpleanos;
 
 // Reporte
 let tipoReporte;
@@ -360,16 +375,40 @@ function configurarCamposVisita() {
     }
 }
 
+function normalizarMinisterioParaComparacion(valor) {
+    const ministerio = String(valor || "")
+        .trim()
+        .toLocaleLowerCase();
+
+    // Unificar las variantes actuales de Adolescentes
+    if (
+        ministerio === "adolecente" ||
+        ministerio === "adolecentes" ||
+        ministerio === "adolescente" ||
+        ministerio === "adolescentes"
+    ) {
+        return "adolescentes";
+    }
+
+    return ministerio;
+}
+
 function miembroPerteneceAlAlcance(miembro) {
     if (!miembro || miembro.activo !== true) return false;
 
     if (esRolMiembro()) {
-        return miembroIdUsuarioActual !== null && Number(miembro.id) === Number(miembroIdUsuarioActual);
+        return miembroIdUsuarioActual !== null &&
+            Number(miembro.id) === Number(miembroIdUsuarioActual);
     }
 
     if (esRolLider()) {
-        return String(miembro.ministerio || "").trim().toLocaleLowerCase() ===
-            String(ministerioUsuarioActual || "").trim().toLocaleLowerCase();
+        const ministerioMiembro =
+            normalizarMinisterioParaComparacion(miembro.ministerio);
+
+        const ministerioLider =
+            normalizarMinisterioParaComparacion(ministerioUsuarioActual);
+
+        return ministerioMiembro === ministerioLider;
     }
 
     return true;
@@ -398,6 +437,8 @@ function mostrarLogin() {
         "btnCargarAsistencia",
         "btnGuardarAsistencia",
         "listaAsistencia",
+        "seccionAlertasAsistencia",
+        "seccionCumpleanosMiembros",
         "mesReporte",
         "btnVerReporte",
         "resultadoReporte",
@@ -440,6 +481,8 @@ function mostrarSistema() {
     const botonCargarAsistencia = document.getElementById("btnCargarAsistencia");
     const botonGuardarAsistencia = document.getElementById("btnGuardarAsistencia");
     const listaAsistenciaElemento = document.getElementById("listaAsistencia");
+    const seccionAlertas = document.getElementById("seccionAlertasAsistencia");
+    const seccionCumpleanos = document.getElementById("seccionCumpleanosMiembros");
     const seccionReporte = document.getElementById("seccionReporte");
 
     [
@@ -451,14 +494,26 @@ function mostrarSistema() {
         botonCargarAsistencia,
         botonGuardarAsistencia,
         listaAsistenciaElemento,
+        seccionAlertas,
+        seccionCumpleanos,
         seccionReporte
     ].forEach(elemento => {
         if (elemento) elemento.style.display = "none";
     });
 
+    const rolesConAccesoCumpleanos = [
+        "administrador", "secretario", "pastor", "lider", "multimedia", "miembro"
+    ];
+    if (rolesConAccesoCumpleanos.includes(rolUsuarioActual) && seccionCumpleanos) {
+        seccionCumpleanos.style.display = "";
+    }
+
     if (rolUsuarioActual === "administrador" || rolUsuarioActual === "secretario") {
         [seccionNuevoMiembro, seccionMiembrosRegistrados, seccionControlAsistencia, seccionReporte]
             .forEach(e => { if (e) e.style.display = ""; });
+        if (rolUsuarioActual === "administrador" && seccionAlertas) {
+            seccionAlertas.style.display = "";
+        }
         [formularioMiembro, listaMiembrosElemento, botonCargarAsistencia, botonGuardarAsistencia, listaAsistenciaElemento]
             .forEach(e => { if (e) e.style.display = ""; });
         return;
@@ -624,7 +679,10 @@ function iniciarAplicacionUnaVez() {
     agregarEstilosAsistenciaPorMinisterio();
     inicializarReporte();
     inicializarModalEditar();
+    inicializarDetallesMiembro();
     configurarCamposVisita();
+    inicializarAlertasAsistencia();
+    inicializarCumpleanos();
 }
 
 // ==========================================================
@@ -675,6 +733,150 @@ function mostrarVistaPreviaFoto() {
     }
 }
 
+
+// ==========================================================
+// AUTOMATIZACIÓN DE MINISTERIO SEGÚN EDAD
+// ==========================================================
+// Reglas:
+// 0–9   = Niños
+// 10–17 = Adolescentes
+// 18–39 = Jóvenes
+// 40+ Hombre = Caballeros
+// 40+ Mujer  = Damas
+//
+// Estos ministerios especiales no se cambian automáticamente:
+// Visita, Amigos, Evangelismo y Ujieres.
+
+function calcularEdad(fechaNacimiento) {
+    if (!fechaNacimiento) return null;
+
+    const partes = String(fechaNacimiento).split("-");
+    if (partes.length !== 3) return null;
+
+    const anio = Number(partes[0]);
+    const mes = Number(partes[1]);
+    const dia = Number(partes[2]);
+
+    if (
+        !Number.isInteger(anio) ||
+        !Number.isInteger(mes) ||
+        !Number.isInteger(dia) ||
+        anio < 1900 ||
+        mes < 1 ||
+        mes > 12 ||
+        dia < 1 ||
+        dia > 31
+    ) {
+        return null;
+    }
+
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - anio;
+
+    const mesActual = hoy.getMonth() + 1;
+    const diaActual = hoy.getDate();
+
+    if (
+        mesActual < mes ||
+        (mesActual === mes && diaActual < dia)
+    ) {
+        edad--;
+    }
+
+    return edad >= 0 ? edad : null;
+}
+
+function obtenerMinisterioAutomaticoPorEdad(fechaNacimiento, sexo) {
+    const edad = calcularEdad(fechaNacimiento);
+
+    if (edad === null) return null;
+
+    if (edad <= 9) return "Niños";
+    if (edad <= 17) return "Adolescentes";
+    if (edad <= 39) return "Jóvenes";
+
+    const sexoNormalizado = String(sexo || "")
+        .trim()
+        .toLocaleLowerCase();
+
+    if (sexoNormalizado === "hombre") return "Caballeros";
+    if (sexoNormalizado === "mujer") return "Damas";
+
+    return null;
+}
+
+function esMinisterioProtegidoDeAutomatizacion(ministerio) {
+    const valor = normalizarMinisterioParaComparacion(ministerio);
+
+    return [
+        "visita",
+        "amigos",
+        "evangelismo",
+        "ujieres"
+    ].includes(valor);
+}
+
+function puedeAplicarAutomatizacionDeEdad() {
+    // Solo los roles que actualmente administran/editan miembros
+    // aplican esta automatización desde el navegador.
+    return esRolAdministrativo() || esRolMultimedia();
+}
+
+async function sincronizarMinisterioPorEdad(miembro) {
+    if (!puedeAplicarAutomatizacionDeEdad()) return false;
+    if (!miembro || miembro.activo !== true) return false;
+
+    if (esMinisterioProtegidoDeAutomatizacion(miembro.ministerio)) {
+        return false;
+    }
+
+    const ministerioAutomatico =
+        obtenerMinisterioAutomaticoPorEdad(
+            miembro.fecha_nacimiento,
+            miembro.sexo
+        );
+
+    if (!ministerioAutomatico) return false;
+
+    const ministerioActual = String(miembro.ministerio || "").trim();
+
+    if (
+        normalizarMinisterioParaComparacion(ministerioActual) ===
+        normalizarMinisterioParaComparacion(ministerioAutomatico)
+    ) {
+        return false;
+    }
+
+    const resultado = await supabaseClient
+        .from("miembros")
+        .update({ ministerio: ministerioAutomatico })
+        .eq("id", miembro.id);
+
+    if (resultado.error) throw resultado.error;
+
+    console.log(
+        "🔄 Ministerio actualizado automáticamente:",
+        miembro.nombre,
+        "→",
+        ministerioAutomatico
+    );
+
+    return true;
+}
+
+async function sincronizarMinisteriosPorEdad(miembros) {
+    if (!puedeAplicarAutomatizacionDeEdad()) return false;
+
+    let huboCambios = false;
+
+    for (const miembro of miembros || []) {
+        const cambio = await sincronizarMinisterioPorEdad(miembro);
+        if (cambio) huboCambios = true;
+    }
+
+    return huboCambios;
+}
+
 async function guardarMiembro(event) {
     event.preventDefault();
 
@@ -689,6 +891,8 @@ async function guardarMiembro(event) {
         const nombreElemento = document.getElementById("nombre");
         const telefonoElemento = document.getElementById("telefono");
         const ministerioElemento = document.getElementById("ministerio");
+        const fechaNacimientoElemento = document.getElementById("fecha_nacimiento");
+        const sexoElemento = document.getElementById("sexo");
 
         const nombre = nombreElemento
             ? nombreElemento.value.trim()
@@ -698,9 +902,41 @@ async function guardarMiembro(event) {
             ? telefonoElemento.value.trim()
             : "";
 
-        const ministerio = esRolLider()
+        const domicilioElemento = document.getElementById("domicilio");
+        const domicilio = domicilioElemento
+            ? domicilioElemento.value.trim()
+            : "";
+
+        const fechaNacimiento = fechaNacimientoElemento
+            ? fechaNacimientoElemento.value || null
+            : null;
+
+        const sexo = sexoElemento
+            ? sexoElemento.value || null
+            : null;
+
+        let ministerio = esRolLider()
             ? (ministerioUsuarioActual || "")
             : (ministerioElemento ? ministerioElemento.value : "");
+
+        const ministerioAutomatico =
+            puedeAplicarAutomatizacionDeEdad()
+                ? obtenerMinisterioAutomaticoPorEdad(
+                    fechaNacimiento,
+                    sexo
+                )
+                : null;
+
+        if (
+            ministerioAutomatico &&
+            !esMinisterioProtegidoDeAutomatizacion(ministerio)
+        ) {
+            ministerio = ministerioAutomatico;
+
+            if (ministerioElemento && !esRolLider()) {
+                ministerioElemento.value = ministerioAutomatico;
+            }
+        }
 
         const iglesiaVisitaElemento = document.getElementById("iglesiaVisita");
         const iglesia_origen = ministerio === "Visita"
@@ -749,7 +985,10 @@ async function guardarMiembro(event) {
         const datosMiembro = {
             nombre,
             telefono,
+            domicilio,
             ministerio,
+            fecha_nacimiento: fechaNacimiento,
+            sexo: sexo,
             iglesia_origen,
             foto_url: fotoUrl,
             lunes: diasSeleccionados.includes("lunes"),
@@ -849,8 +1088,31 @@ async function cargarMiembros() {
 
         if (resultado.error) throw resultado.error;
 
-        miembrosPermitidosActuales = filtrarMiembrosPorAlcance(resultado.data || []);
+        const miembrosCargados = resultado.data || [];
+
+        const huboCambiosPorEdad =
+            await sincronizarMinisteriosPorEdad(miembrosCargados);
+
+        if (huboCambiosPorEdad) {
+            const resultadoActualizado = await supabaseClient
+                .from("miembros")
+                .select("*")
+                .eq("activo", true)
+                .order("nombre", { ascending: true });
+
+            if (resultadoActualizado.error) {
+                throw resultadoActualizado.error;
+            }
+
+            miembrosPermitidosActuales =
+                filtrarMiembrosPorAlcance(resultadoActualizado.data || []);
+        } else {
+            miembrosPermitidosActuales =
+                filtrarMiembrosPorAlcance(miembrosCargados);
+        }
+
         mostrarMiembros(miembrosPermitidosActuales);
+        renderizarCumpleanosMiembros();
     } catch (error) {
         console.error("Error cargando miembros:", error);
         listaMiembros.innerHTML = `
@@ -908,6 +1170,11 @@ if (contadorTotal) {
         rolUsuarioActual === "administrador" ||
         rolUsuarioActual === "secretario" ||
         rolUsuarioActual === "multimedia";
+
+    const puedeVerDetalles =
+        rolUsuarioActual === "administrador" ||
+        rolUsuarioActual === "pastor" ||
+        rolUsuarioActual === "lider";
 
     miembros.forEach(function (miembro) {
 
@@ -970,37 +1237,48 @@ if (contadorTotal) {
             </div>
 
             ${
-                puedeEditar
+                (puedeVerDetalles || puedeEditar)
                     ? `
                         <div class="miembro-acciones">
-                            <button
-                                type="button"
-                                class="btn-editar"
-                                data-id="${escaparHTML(
-                                    miembro.id
-                                )}"
-                            >
-                                ✏️ Editar
-                            </button>
+                            ${puedeVerDetalles ? `
+                                <button
+                                    type="button"
+                                    class="btn-detalles"
+                                    data-id="${escaparHTML(miembro.id)}"
+                                >
+                                    👁️ Detalles
+                                </button>
+                            ` : ""}
+                            ${puedeEditar ? `
+                                <button
+                                    type="button"
+                                    class="btn-editar"
+                                    data-id="${escaparHTML(miembro.id)}"
+                                >
+                                    ✏️ Editar
+                                </button>
+                            ` : ""}
                         </div>
                     `
                     : ""
             }
         `;
 
+        if (puedeVerDetalles) {
+            const botonDetalles = tarjeta.querySelector(".btn-detalles");
+            if (botonDetalles) {
+                botonDetalles.addEventListener("click", function () {
+                    abrirDetallesMiembro(miembro.id);
+                });
+            }
+        }
+
         if (puedeEditar) {
-
-            const botonEditar =
-                tarjeta.querySelector(".btn-editar");
-
+            const botonEditar = tarjeta.querySelector(".btn-editar");
             if (botonEditar) {
-
-                botonEditar.addEventListener(
-                    "click",
-                    function () {
-                        abrirModalEditar(miembro.id);
-                    }
-                );
+                botonEditar.addEventListener("click", function () {
+                    abrirModalEditar(miembro.id);
+                });
             }
         }
 
@@ -1080,6 +1358,9 @@ function inicializarModalEditar() {
     editarId = document.getElementById("editarId");
     editarNombre = document.getElementById("editarNombre");
     editarTelefono = document.getElementById("editarTelefono");
+    editarDomicilio = document.getElementById("editarDomicilio");
+    editarFechaNacimiento = document.getElementById("editarFechaNacimiento");
+    editarSexo = document.getElementById("editarSexo");
     editarMinisterio = document.getElementById("editarMinisterio");
     editarFoto = document.getElementById("editarFoto");
     editarPreview = document.getElementById("editarPreview");
@@ -1141,6 +1422,15 @@ async function abrirModalEditar(id) {
         if (editarId) editarId.value = miembro.id;
         if (editarNombre) editarNombre.value = miembro.nombre || "";
         if (editarTelefono) editarTelefono.value = miembro.telefono || "";
+        if (editarDomicilio) editarDomicilio.value = miembro.domicilio || "";
+
+        if (editarFechaNacimiento) {
+            editarFechaNacimiento.value = miembro.fecha_nacimiento || "";
+        } 
+
+        if (editarSexo) {
+            editarSexo.value = miembro.sexo || "";
+        }
 
         const ministerioOriginal =
             document.getElementById("ministerio");
@@ -1250,9 +1540,40 @@ async function guardarCambiosMiembro(event) {
     const telefono = editarTelefono
         ? editarTelefono.value.trim()
         : "";
-    const ministerio = editarMinisterio
+    const domicilio = editarDomicilio
+        ? editarDomicilio.value.trim()
+        : "";
+    const fechaNacimiento = editarFechaNacimiento
+        ? editarFechaNacimiento.value || null
+        : null;
+
+    const sexo = editarSexo
+        ? editarSexo.value || null
+        : null;
+
+    let ministerio = editarMinisterio
         ? editarMinisterio.value
         : "";
+
+    const ministerioAutomatico =
+        puedeAplicarAutomatizacionDeEdad()
+            ? obtenerMinisterioAutomaticoPorEdad(
+                fechaNacimiento,
+                sexo
+            )
+            : null;
+
+    if (
+        ministerioAutomatico &&
+        !esMinisterioProtegidoDeAutomatizacion(ministerio)
+    ) {
+        ministerio = ministerioAutomatico;
+
+        if (editarMinisterio) {
+            editarMinisterio.value = ministerioAutomatico;
+        }
+    }
+
     const editarIglesiaVisita = document.getElementById("editarIglesiaVisita");
     const iglesia_origen = ministerio === "Visita"
         ? (editarIglesiaVisita ? editarIglesiaVisita.value.trim() : "")
@@ -1305,7 +1626,10 @@ async function guardarCambiosMiembro(event) {
         const datosActualizar = {
             nombre,
             telefono,
+            domicilio,
             ministerio,
+            fecha_nacimiento: fechaNacimiento,
+            sexo: sexo,
             iglesia_origen,
             lunes: diasSeleccionados.includes("lunes"),
             martes: diasSeleccionados.includes("martes"),
@@ -1330,7 +1654,12 @@ async function guardarCambiosMiembro(event) {
             throw resultado.error;
         }
 
-        alert("✅ Miembro actualizado correctamente.");
+        alert(
+            "✅ Miembro actualizado correctamente.\n\n" +
+            "Fecha de nacimiento: " + (fechaNacimiento || "No registrada") + "\n" +
+            "Sexo: " + (sexo || "No registrado") + "\n" +
+            "Ministerio: " + ministerio
+        );
 
         cerrarModalEditar();
         await cargarMiembros();
@@ -1361,6 +1690,259 @@ async function guardarCambiosMiembro(event) {
             btnGuardarEdicion.textContent = "💾 Guardar cambios";
         }
     }
+}
+
+// ==========================================================
+// DETALLES DEL MIEMBRO
+// ==========================================================
+
+function puedeVerDetallesMiembro() {
+    return ["administrador", "pastor", "lider"].includes(rolUsuarioActual);
+}
+
+function formatearFechaDetalle(fecha) {
+    if (!fecha) return "No registrada";
+    const partes = String(fecha).split("-");
+    if (partes.length !== 3) return String(fecha);
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function formatearCumpleanosDetalle(fecha) {
+    if (!fecha) return "No registrado";
+
+    const partes = String(fecha).split("-");
+    if (partes.length !== 3) return String(fecha);
+
+    const mes = Number(partes[1]);
+    const dia = Number(partes[2]);
+
+    const nombresMeses = [
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    ];
+
+    if (mes < 1 || mes > 12 || dia < 1 || dia > 31) {
+        return String(fecha);
+    }
+
+    return `${dia} de ${nombresMeses[mes - 1]}`;
+}
+
+function obtenerRangoDetalle(tipo) {
+    const hoy = new Date();
+    hoy.setHours(12, 0, 0, 0);
+    const inicio = new Date(hoy);
+    const fin = new Date(hoy);
+
+    if (tipo === "semana") {
+        const dia = hoy.getDay();
+        const desplazamiento = dia === 0 ? -6 : 1 - dia;
+        inicio.setDate(hoy.getDate() + desplazamiento);
+        fin.setDate(inicio.getDate() + 6);
+    } else if (tipo === "mes") {
+        inicio.setDate(1);
+        fin.setMonth(fin.getMonth() + 1, 0);
+    } else if (tipo === "anio") {
+        inicio.setMonth(0, 1);
+        fin.setMonth(11, 31);
+    }
+
+    const iso = fecha => {
+        const y = fecha.getFullYear();
+        const m = String(fecha.getMonth() + 1).padStart(2, "0");
+        const d = String(fecha.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    };
+    return { inicio: iso(inicio), fin: iso(fin) };
+}
+
+function obtenerRegistrosEnRango(registros, inicio, fin) {
+    return (registros || [])
+        .filter(r => r.asistio === true && r.fecha >= inicio && r.fecha <= fin)
+        .sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+}
+
+function construirRegistrosDetalle(registros, limite = 12) {
+    if (!registros.length) return '<p class="mensaje">No hay asistencias registradas en este período.</p>';
+    const visibles = registros.slice(0, limite);
+    let html = `<ul class="detalles-registros">${visibles.map(r => `<li><strong>${escaparHTML(formatearFechaDetalle(r.fecha))}</strong> — ${escaparHTML(r.servicio || "Servicio")}</li>`).join("")}</ul>`;
+    if (registros.length > limite) html += `<p class="mensaje">Mostrando ${limite} de ${registros.length} registros.</p>`;
+    return html;
+}
+
+async function guardarCondicionMedica(miembroId) {
+    if (rolUsuarioActual !== "administrador") {
+        alert("❌ Solo el Administrador puede modificar la condición médica.");
+        return;
+    }
+
+    const campo = document.getElementById("condicionMedicaDetalle");
+    const boton = document.getElementById("btnGuardarCondicionMedica");
+    if (!campo) return;
+
+    const condicion = String(campo.value || "").trim();
+    if (boton) {
+        boton.disabled = true;
+        boton.textContent = "⏳ Guardando...";
+    }
+
+    try {
+        let resultado;
+
+        if (!condicion) {
+            resultado = await supabaseClient
+                .from("miembros_condiciones_medicas")
+                .delete()
+                .eq("miembro_id", miembroId);
+        } else {
+            resultado = await supabaseClient
+                .from("miembros_condiciones_medicas")
+                .upsert({
+                    miembro_id: miembroId,
+                    condicion_medica: condicion,
+                    actualizado_en: new Date().toISOString()
+                }, { onConflict: "miembro_id" });
+        }
+
+        if (resultado.error) throw resultado.error;
+
+        alert(condicion
+            ? "✅ Condición médica guardada correctamente."
+            : "✅ Condición médica eliminada correctamente.");
+
+        await abrirDetallesMiembro(miembroId);
+    } catch (error) {
+        console.error("Error guardando condición médica:", error);
+        alert("❌ No se pudo guardar la condición médica.\n\n" + (error.message || error));
+    } finally {
+        if (boton) {
+            boton.disabled = false;
+            boton.textContent = "💾 Guardar condición médica";
+        }
+    }
+}
+
+async function abrirDetallesMiembro(id) {
+    if (!puedeVerDetallesMiembro()) {
+        alert("❌ Este usuario no tiene permiso para ver los detalles del miembro.");
+        return;
+    }
+
+    if (esRolLider() && !(miembrosPermitidosActuales || []).some(m => Number(m.id) === Number(id))) {
+        alert("❌ Este miembro no pertenece al ministerio asignado a este Líder.");
+        return;
+    }
+
+    const modal = document.getElementById("modalDetalles");
+    const contenido = document.getElementById("contenidoDetallesMiembro");
+    if (!modal || !contenido) return;
+
+    modal.classList.add("mostrar");
+    document.body.classList.add("modal-abierto");
+    contenido.innerHTML = '<p class="mensaje">⏳ Cargando detalles...</p>';
+
+    try {
+        const resultadoMiembro = await supabaseClient
+            .from("miembros")
+            .select("*")
+            .eq("id", id)
+            .eq("activo", true)
+            .single();
+        if (resultadoMiembro.error) throw resultadoMiembro.error;
+        const miembro = resultadoMiembro.data;
+        if (!miembro || !miembroPerteneceAlAlcance(miembro)) {
+            throw new Error("Este miembro está fuera del alcance de su usuario.");
+        }
+
+        const resultadoAsistencias = await supabaseClient
+            .from("asistencias")
+            .select("miembro_id, fecha, servicio, asistio")
+            .eq("miembro_id", id)
+            .order("fecha", { ascending: false });
+        if (resultadoAsistencias.error) throw resultadoAsistencias.error;
+        const asistencias = resultadoAsistencias.data || [];
+
+        let condicionMedica = null;
+        let errorCondicionMedica = null;
+        const resultadoMedico = await supabaseClient
+            .from("miembros_condiciones_medicas")
+            .select("miembro_id, condicion_medica, actualizado_en")
+            .eq("miembro_id", id)
+            .maybeSingle();
+        if (resultadoMedico.error) errorCondicionMedica = resultadoMedico.error;
+        else condicionMedica = resultadoMedico.data;
+
+        const periodos = [
+            { clave: "dia", titulo: "Hoy", texto: "Día" },
+            { clave: "semana", titulo: "Esta semana", texto: "Semana" },
+            { clave: "mes", titulo: "Este mes", texto: "Mes" },
+            { clave: "anio", titulo: "Este año", texto: "Año" }
+        ].map(periodo => {
+            const rango = obtenerRangoDetalle(periodo.clave);
+            const registros = obtenerRegistrosEnRango(asistencias, rango.inicio, rango.fin);
+            return { ...periodo, ...rango, registros, cantidad: registros.length };
+        });
+
+        const edad = calcularEdad(miembro.fecha_nacimiento);
+        const edadTexto = edad === null ? "No calculable" : `${edad} año${edad === 1 ? "" : "s"}`;
+        const fotoHTML = miembro.foto_url
+            ? `<img src="${escaparHTML(miembro.foto_url)}" alt="Foto de ${escaparHTML(miembro.nombre || "miembro")}" class="detalles-foto">`
+            : `<div class="detalles-foto" style="display:flex;align-items:center;justify-content:center;font-size:34px;">👤</div>`;
+        const condicionValor = condicionMedica?.condicion_medica || "";
+        const condicionHTML = condicionMedica?.condicion_medica
+            ? escaparHTML(condicionMedica.condicion_medica)
+            : errorCondicionMedica
+                ? "No disponible por permisos de base de datos"
+                : "No registrada";
+        const editorCondicionHTML = rolUsuarioActual === "administrador"
+            ? `
+                <div class="condicion-medica-editor">
+                    <label for="condicionMedicaDetalle">Condición médica</label>
+                    <textarea id="condicionMedicaDetalle" rows="3" placeholder="Escriba la condición médica, si corresponde...">${escaparHTML(condicionValor)}</textarea>
+                    <button type="button" id="btnGuardarCondicionMedica" class="btn-guardar-condicion-medica" onclick="guardarCondicionMedica(${Number(id)})">
+                        💾 Guardar condición médica
+                    </button>
+                    <small>Opcional. Deje el campo vacío para eliminarla.</small>
+                </div>
+            `
+            : `<div class="detalles-privado">${condicionHTML}</div>`;
+
+        contenido.innerHTML = `
+            <div class="detalles-cabecera">
+                ${fotoHTML}
+                <div><h3 class="detalles-nombre">${escaparHTML(miembro.nombre || "")}</h3><p class="detalles-subtitulo">${escaparHTML(miembro.ministerio || "Sin ministerio")}</p></div>
+            </div>
+            <div class="detalles-datos">
+                <div class="detalle-dato"><strong>Sexo</strong><span>${escaparHTML(miembro.sexo || "No registrado")}</span></div>
+                <div class="detalle-dato"><strong>🎂 Cumpleaños</strong><span>${escaparHTML(formatearCumpleanosDetalle(miembro.fecha_nacimiento))}</span></div>
+                <div class="detalle-dato"><strong>Edad</strong><span>${escaparHTML(edadTexto)}</span></div>
+                <div class="detalle-dato"><strong>Dónde vive</strong><span>${escaparHTML(miembro.domicilio || "No registrado")}</span></div>
+                <div class="detalle-dato"><strong>Teléfono</strong><span>${escaparHTML(miembro.telefono || "No registrado")}</span></div>
+                <div class="detalle-dato"><strong>Días habituales</strong><span>${escaparHTML(obtenerDias(miembro) || "No registrados")}</span></div>
+            </div>
+            <div class="detalles-seccion"><h3>📊 Asistencia</h3><div class="detalles-asistencia-grid">${periodos.map(p => `<div class="detalle-periodo"><span class="numero">${p.cantidad}</span><span class="texto">${p.texto}</span></div>`).join("")}</div></div>
+            <div class="detalles-seccion"><h3>📅 Registros de asistencia</h3>${periodos.map(p => `<div class="detalle-dato" style="margin-bottom:8px;"><strong>${p.titulo}</strong>${construirRegistrosDetalle(p.registros)}</div>`).join("")}</div>
+            <div class="detalles-seccion"><h3>🔒 Información médica</h3>${rolUsuarioActual === "administrador" ? editorCondicionHTML : `<div class="detalles-privado">${condicionHTML}</div>`}</div>
+        `;
+    } catch (error) {
+        console.error("Error cargando detalles del miembro:", error);
+        contenido.innerHTML = `<p class="mensaje">❌ No se pudieron cargar los detalles.<br><br>${escaparHTML(error.message || error)}</p>`;
+    }
+}
+
+function cerrarDetallesMiembro() {
+    const modal = document.getElementById("modalDetalles");
+    const contenido = document.getElementById("contenidoDetallesMiembro");
+    if (modal) modal.classList.remove("mostrar");
+    document.body.classList.remove("modal-abierto");
+    if (contenido) contenido.innerHTML = '<p class="mensaje">Cargando detalles...</p>';
+}
+
+function inicializarDetallesMiembro() {
+    const modal = document.getElementById("modalDetalles");
+    const botonCerrar = document.getElementById("btnCerrarDetalles");
+    if (botonCerrar) botonCerrar.addEventListener("click", cerrarDetallesMiembro);
+    if (modal) modal.addEventListener("click", event => { if (event.target === modal) cerrarDetallesMiembro(); });
 }
 
 // ==========================================
@@ -1564,7 +2146,7 @@ async function cargarListaAsistencia() {
             error: errorAsistencias
         } = await supabaseClient
             .from("asistencias")
-            .select("miembro_id")
+            .select("miembro_id, asistio")
             .eq("fecha", fecha)
             .eq("servicio", servicio);
 
@@ -1573,11 +2155,13 @@ async function cargarListaAsistencia() {
         }
 
         const idsAsistentes = new Set(
-            (asistenciasExistentes || []).map(
-                function (a) {
+            (asistenciasExistentes || [])
+                .filter(function (a) {
+                    return a.asistio === true;
+                })
+                .map(function (a) {
                     return a.miembro_id;
-                }
-            )
+                })
         );
 
         // --------------------------------------
@@ -1770,11 +2354,9 @@ async function guardarAsistencia() {
         return;
     }
 
-    const checkboxes =
-        document.querySelectorAll(".check-asistencia");
-
+    const checkboxes = document.querySelectorAll(".check-asistencia");
     const idsPermitidos = new Set(
-        (miembrosPermitidosActuales || []).map(m => Number(m.id))
+        (miembrosPermitidosActuales || []).map(function (m) { return Number(m.id); })
     );
 
     if (checkboxes.length === 0) {
@@ -1788,89 +2370,413 @@ async function guardarAsistencia() {
     }
 
     try {
-        // --------------------------------------
-        // BORRAR REGISTROS ANTERIORES
-        // --------------------------------------
-
-        const { error: errorDelete } =
-            await supabaseClient
-                .from("asistencias")
-                .delete()
-                .eq("fecha", fecha)
-                .eq("servicio", servicio);
+        // Reemplaza solamente la combinación fecha + servicio seleccionada.
+        const { error: errorDelete } = await supabaseClient
+            .from("asistencias")
+            .delete()
+            .eq("fecha", fecha)
+            .eq("servicio", servicio);
 
         if (errorDelete) {
             throw errorDelete;
         }
 
-        // --------------------------------------
-        // CREAR REGISTROS
-        // --------------------------------------
-
+        // Guardamos todos los miembros visibles: true = asistió, false = no asistió.
+        // Esto permite detectar posteriormente las ausencias reales.
         const registros = [];
 
         checkboxes.forEach(function (checkbox) {
-            if (checkbox.checked) {
-                const miembroId = Number(checkbox.dataset.miembroId);
-                if (!idsPermitidos.has(miembroId)) return;
+            const miembroId = Number(checkbox.dataset.miembroId);
+            if (!idsPermitidos.has(miembroId)) return;
 
-                registros.push({
-                    miembro_id: miembroId,
-                    fecha: fecha,
-                    servicio: servicio,
-                    asistio: true
-                });
-            }
+            registros.push({
+                miembro_id: miembroId,
+                fecha: fecha,
+                servicio: servicio,
+                asistio: checkbox.checked === true
+            });
         });
 
-        // --------------------------------------
-        // INSERTAR
-        // --------------------------------------
-
         if (registros.length > 0) {
-            const { error: errorInsert } =
-                await supabaseClient
-                    .from("asistencias")
-                    .insert(registros);
+            const { error: errorInsert } = await supabaseClient
+                .from("asistencias")
+                .insert(registros);
 
             if (errorInsert) {
                 throw errorInsert;
             }
         }
 
+        const totalAsistieron = registros.filter(function (r) { return r.asistio === true; }).length;
+        const totalNoAsistieron = registros.length - totalAsistieron;
+
         alert(
             "✅ Asistencia guardada correctamente.\n\n" +
-            "Fecha: " +
-            fecha +
-            "\n" +
-            "Servicio: " +
-            servicio +
-            "\n" +
-            "Asistieron: " +
-            registros.length
+            "Fecha: " + fecha + "\n" +
+            "Servicio: " + servicio + "\n" +
+            "Registrados: " + registros.length + "\n" +
+            "Asistieron: " + totalAsistieron + "\n" +
+            "No asistieron: " + totalNoAsistieron
         );
 
-        await cargarListaAsistencia();
+        // No recargamos la lista: las casillas permanecen como las dejó el usuario.
+        // Puede guardar nuevamente sin tener que volver a marcar.
+        if (rolUsuarioActual === "administrador") {
+            await cargarAlertasAsistencia();
+        }
 
     } catch (error) {
         console.error("Error guardando asistencia:", error);
-
         alert(
             "❌ No se pudo guardar la asistencia.\n\n" +
             (error.message || error)
         );
-
     } finally {
         if (btnGuardarAsistencia) {
             btnGuardarAsistencia.disabled = false;
-            btnGuardarAsistencia.textContent =
-                "💾 Guardar asistencia";
+            btnGuardarAsistencia.textContent = "💾 Guardar asistencia";
         }
     }
 }
 
 
 
+// ==========================================================
+// CUMPLEAÑOS DE LOS MIEMBROS
+// ==========================================================
+
+function inicializarCumpleanos() {
+    seccionCumpleanosMiembros = document.getElementById("seccionCumpleanosMiembros");
+    mesCumpleanos = document.getElementById("mesCumpleanos");
+    listaCumpleanos = document.getElementById("listaCumpleanos");
+    resumenCumpleanos = document.getElementById("resumenCumpleanos");
+
+    if (mesCumpleanos) {
+        const mesActual = new Date().getMonth();
+        mesCumpleanos.value = String(mesActual);
+        mesCumpleanos.addEventListener("change", renderizarCumpleanosMiembros);
+    }
+
+    renderizarCumpleanosMiembros();
+}
+
+function obtenerNombreMesCumpleanos(numeroMes) {
+    const meses = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+    return meses[numeroMes] || "";
+}
+
+function obtenerDiaCumpleanos(fechaNacimiento) {
+    if (!fechaNacimiento) return null;
+    const partes = String(fechaNacimiento).split("-");
+    if (partes.length !== 3) return null;
+
+    const mes = Number(partes[1]);
+    const dia = Number(partes[2]);
+
+    if (!Number.isInteger(mes) || !Number.isInteger(dia) || mes < 1 || mes > 12 || dia < 1 || dia > 31) {
+        return null;
+    }
+
+    return { mes: mes - 1, dia };
+}
+
+function renderizarCumpleanosMiembros() {
+    if (!listaCumpleanos || !resumenCumpleanos) return;
+
+    const mesSeleccionado = mesCumpleanos
+        ? Number(mesCumpleanos.value)
+        : new Date().getMonth();
+
+    const miembros = Array.isArray(miembrosPermitidosActuales)
+        ? miembrosPermitidosActuales
+        : [];
+
+    const cumpleanos = miembros
+        .map(miembro => {
+            const fecha = obtenerDiaCumpleanos(miembro.fecha_nacimiento);
+            if (!fecha || fecha.mes !== mesSeleccionado) return null;
+            return {
+                miembro,
+                dia: fecha.dia
+            };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+            if (a.dia !== b.dia) return a.dia - b.dia;
+            return String(a.miembro.nombre || "").localeCompare(String(b.miembro.nombre || ""), "es", { sensitivity: "base" });
+        });
+
+    const nombreMes = obtenerNombreMesCumpleanos(mesSeleccionado);
+    resumenCumpleanos.textContent = `${cumpleanos.length} ${cumpleanos.length === 1 ? "cumpleaños" : "cumpleaños"} en ${nombreMes}`;
+
+    if (!cumpleanos.length) {
+        listaCumpleanos.innerHTML = `
+            <div class="cumpleanos-sin-datos">
+                <strong>📅 No hay cumpleaños registrados</strong>
+                <span>No hay miembros con cumpleaños registrado en ${escaparHTML(nombreMes)}.</span>
+            </div>
+        `;
+        return;
+    }
+
+    listaCumpleanos.innerHTML = cumpleanos.map(({ miembro, dia }) => `
+        <div class="cumpleanos-card">
+            <div class="cumpleanos-dia">
+                <span class="cumpleanos-dia-numero">${dia}</span>
+                <span class="cumpleanos-dia-texto">${escaparHTML(nombreMes)}</span>
+            </div>
+            <div class="cumpleanos-info">
+                <strong>🎂 ${escaparHTML(miembro.nombre || "Sin nombre")}</strong>
+                <span>${escaparHTML(miembro.ministerio || "Sin ministerio")}</span>
+            </div>
+        </div>
+    `).join("");
+}
+
+// ==========================================================
+// ALERTAS DE ASISTENCIA
+// ==========================================================
+
+function inicializarAlertasAsistencia() {
+    seccionAlertasAsistencia = document.getElementById("seccionAlertasAsistencia");
+    listaAlertasAsistencia = document.getElementById("listaAlertasAsistencia");
+    resumenAlertasAsistencia = document.getElementById("resumenAlertasAsistencia");
+    btnActualizarAlertasAsistencia = document.getElementById("btnActualizarAlertasAsistencia");
+
+    if (btnActualizarAlertasAsistencia) {
+        btnActualizarAlertasAsistencia.addEventListener("click", cargarAlertasAsistencia);
+    }
+
+    if (rolUsuarioActual === "administrador") {
+        cargarAlertasAsistencia();
+    }
+}
+
+function formatearFechaCorta(fecha) {
+    if (!fecha) return "";
+    const partes = String(fecha).split("-");
+    if (partes.length !== 3) return String(fecha);
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
+
+function obtenerLunesDeSemana(fecha) {
+    const d = new Date(fecha);
+    d.setHours(12, 0, 0, 0);
+    const dia = d.getDay();
+    const diferencia = dia === 0 ? -6 : 1 - dia;
+    d.setDate(d.getDate() + diferencia);
+    return d;
+}
+
+function fechaISODesdeDate(fecha) {
+    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`;
+}
+
+function obtenerFechaInicioMes(fecha) {
+    return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function obtenerDiasHabitualesMiembro(miembro) {
+    const dias = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
+    return dias.filter(dia => miembro && miembro[dia] === true);
+}
+
+function construirDiasConReunion(registrosTotales) {
+    const dias = new Set();
+    (registrosTotales || []).forEach(registro => {
+        if (!registro.fecha) return;
+        dias.add(registro.fecha);
+    });
+    return dias;
+}
+
+function obtenerSemanasConsecutivasSinAsistir(miembro, registrosMiembro, registrosTotales, fechaHoyDate) {
+    const diasHabituales = obtenerDiasHabitualesMiembro(miembro);
+    if (diasHabituales.length === 0) return [];
+
+    const porFechaMiembro = new Map();
+    (registrosMiembro || []).forEach(registro => {
+        if (!registro.fecha) return;
+        if (!porFechaMiembro.has(registro.fecha)) porFechaMiembro.set(registro.fecha, []);
+        porFechaMiembro.get(registro.fecha).push(registro);
+    });
+
+    const fechasConReunion = construirDiasConReunion(registrosTotales);
+    const semanas = [];
+    const fechaInicioVentana = new Date(fechaHoyDate);
+    fechaInicioVentana.setHours(12, 0, 0, 0);
+    fechaInicioVentana.setDate(fechaInicioVentana.getDate() - 84);
+
+    for (let lunes = obtenerLunesDeSemana(fechaInicioVentana); lunes <= fechaHoyDate; lunes.setDate(lunes.getDate() + 7)) {
+        const inicio = new Date(lunes);
+        const fin = new Date(lunes);
+        fin.setDate(fin.getDate() + 6);
+
+        let tieneDiaEsperadoRegistrado = false;
+        let asistioEnLaSemana = false;
+
+        for (let i = 0; i < 7; i++) {
+            const dia = new Date(inicio);
+            dia.setDate(inicio.getDate() + i);
+            if (dia > fechaHoyDate) break;
+
+            const nombreDia = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"][dia.getDay()];
+            if (!diasHabituales.includes(nombreDia)) continue;
+
+            const fechaISO = fechaISODesdeDate(dia);
+            // El día cuenta como jornada realizada si existe al menos
+            // un registro de asistencia en esa fecha, aunque el miembro
+            // no tenga una fila propia. Esto permite detectar un "No"
+            // implícito cuando el control fue guardado para los miembros.
+            if (!fechasConReunion.has(fechaISO)) continue;
+
+            tieneDiaEsperadoRegistrado = true;
+            const registrosDia = porFechaMiembro.get(fechaISO) || [];
+            if (registrosDia.some(registro => registro.asistio === true)) {
+                asistioEnLaSemana = true;
+            }
+        }
+
+        semanas.push({
+            lunes: fechaISODesdeDate(inicio),
+            domingo: fechaISODesdeDate(fin),
+            tieneDiaEsperadoRegistrado,
+            asistioEnLaSemana
+        });
+    }
+
+    const alertas = [];
+    for (let i = 1; i < semanas.length; i++) {
+        const anterior = semanas[i - 1];
+        const actual = semanas[i];
+        if (
+            anterior.tieneDiaEsperadoRegistrado &&
+            actual.tieneDiaEsperadoRegistrado &&
+            !anterior.asistioEnLaSemana &&
+            !actual.asistioEnLaSemana
+        ) {
+            alertas.push({ anterior, actual });
+        }
+    }
+
+    return alertas;
+}
+
+function obtenerAusenciasHabitualesDelMes(miembro, registrosMiembro, registrosTotales, fechaHoyDate) {
+    const diasHabituales = obtenerDiasHabitualesMiembro(miembro);
+    if (diasHabituales.length === 0) return 0;
+
+    const inicioMes = obtenerFechaInicioMes(fechaHoyDate);
+    const finMes = fechaISODesdeDate(fechaHoyDate);
+    const fechasConReunion = construirDiasConReunion(registrosTotales);
+    const asistioPorFecha = new Set();
+
+    (registrosMiembro || []).forEach(registro => {
+        if (!registro.fecha || registro.fecha < inicioMes || registro.fecha > finMes) return;
+        if (registro.asistio === true) asistioPorFecha.add(registro.fecha);
+    });
+
+    let ausencias = 0;
+    for (const fecha of fechasConReunion) {
+        if (fecha < inicioMes || fecha > finMes) continue;
+        const nombreDia = obtenerDiaDeFecha(fecha);
+        if (!diasHabituales.includes(nombreDia)) continue;
+        if (!asistioPorFecha.has(fecha)) ausencias++;
+    }
+
+    return ausencias;
+}
+
+async function cargarAlertasAsistencia() {
+    if (rolUsuarioActual !== "administrador" || !listaAlertasAsistencia) return;
+
+    listaAlertasAsistencia.innerHTML = '<p class="mensaje">⏳ Revisando asistencia...</p>';
+    if (btnActualizarAlertasAsistencia) {
+        btnActualizarAlertasAsistencia.disabled = true;
+        btnActualizarAlertasAsistencia.textContent = "⏳ Revisando...";
+    }
+
+    try {
+        const hoy = new Date();
+        hoy.setHours(12, 0, 0, 0);
+        const inicioVentana = new Date(hoy);
+        inicioVentana.setDate(inicioVentana.getDate() - 84);
+
+        const resultadoMiembros = await supabaseClient
+            .from("miembros")
+            .select("id, nombre, ministerio, lunes, martes, miercoles, jueves, viernes, sabado, domingo, activo")
+            .eq("activo", true)
+            .order("nombre", { ascending: true });
+        if (resultadoMiembros.error) throw resultadoMiembros.error;
+
+        const resultadoAsistencias = await supabaseClient
+            .from("asistencias")
+            .select("miembro_id, fecha, servicio, asistio")
+            .gte("fecha", fechaISODesdeDate(inicioVentana))
+            .lte("fecha", fechaISODesdeDate(hoy))
+            .order("fecha", { ascending: true });
+        if (resultadoAsistencias.error) throw resultadoAsistencias.error;
+
+        const porMiembro = new Map();
+        (resultadoAsistencias.data || []).forEach(registro => {
+            const id = Number(registro.miembro_id);
+            if (!porMiembro.has(id)) porMiembro.set(id, []);
+            porMiembro.get(id).push(registro);
+        });
+
+        const alertas = [];
+        (resultadoMiembros.data || []).forEach(miembro => {
+            const registros = porMiembro.get(Number(miembro.id)) || [];
+            const asistenciasReales = registros.filter(r => r.asistio === true).length;
+
+            // El control de 2 semanas consecutivas se activa después de más de 3 asistencias registradas.
+            if (asistenciasReales > 3) {
+                const semanas = obtenerSemanasConsecutivasSinAsistir(miembro, registros, resultadoAsistencias.data || [], hoy);
+                if (semanas.length) {
+                    const ultima = semanas[semanas.length - 1];
+                    alertas.push({ tipo: "semanas", miembro, semanas: ultima });
+                }
+            }
+
+            const ausenciasMes = obtenerAusenciasHabitualesDelMes(miembro, registros, resultadoAsistencias.data || [], hoy);
+            if (ausenciasMes >= 2) {
+                alertas.push({ tipo: "mes", miembro, ausenciasMes });
+            }
+        });
+
+        if (resumenAlertasAsistencia) {
+            resumenAlertasAsistencia.innerHTML = `<span class="alerta-contador">${alertas.length}</span><span>${alertas.length === 1 ? "Alerta activa" : "Alertas activas"}</span>`;
+        }
+
+        if (!alertas.length) {
+            listaAlertasAsistencia.innerHTML = '<div class="alerta-sin-datos"><strong>🟢 Sin alertas</strong><span>No se detectaron 2 ausencias habituales en el mes ni 2 semanas consecutivas sin asistencia.</span></div>';
+            return;
+        }
+
+        listaAlertasAsistencia.innerHTML = "";
+        alertas.forEach(alerta => {
+            const tarjeta = document.createElement("div");
+            tarjeta.className = alerta.tipo === "semanas" ? "alerta-card alerta-roja" : "alerta-card alerta-naranja";
+            if (alerta.tipo === "semanas") {
+                tarjeta.innerHTML = `<div class="alerta-icono">🔴</div><div class="alerta-contenido"><strong>2 semanas consecutivas sin asistir</strong><span>${escapeHTML(alerta.miembro.nombre || "Sin nombre")} · ${escapeHTML(alerta.miembro.ministerio || "Sin ministerio")}</span><small>Semanas: ${formatearFechaCorta(alerta.semanas.anterior.lunes)}–${formatearFechaCorta(alerta.semanas.anterior.domingo)} y ${formatearFechaCorta(alerta.semanas.actual.lunes)}–${formatearFechaCorta(alerta.semanas.actual.domingo)}</small></div>`;
+            } else {
+                tarjeta.innerHTML = `<div class="alerta-icono">🟠</div><div class="alerta-contenido"><strong>${alerta.ausenciasMes} ausencias en día habitual este mes</strong><span>${escapeHTML(alerta.miembro.nombre || "Sin nombre")} · ${escapeHTML(alerta.miembro.ministerio || "Sin ministerio")}</span></div>`;
+            }
+            listaAlertasAsistencia.appendChild(tarjeta);
+        });
+    } catch (error) {
+        console.error("Error revisando alertas de asistencia:", error);
+        listaAlertasAsistencia.innerHTML = `<p class="mensaje">❌ No se pudieron revisar las alertas.<br><br>${escapeHTML(error.message || error)}</p>`;
+    } finally {
+        if (btnActualizarAlertasAsistencia) {
+            btnActualizarAlertasAsistencia.disabled = false;
+            btnActualizarAlertasAsistencia.textContent = "🔄 Actualizar";
+        }
+    }
+}
 
 // ==========================================================
 // OBTENER DÍA DE LA SEMANA DESDE UNA FECHA
