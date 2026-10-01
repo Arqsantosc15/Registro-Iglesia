@@ -816,6 +816,22 @@ function esMinisterioProtegidoDeAutomatizacion(ministerio) {
     ].includes(valor);
 }
 
+function obtenerMinisterioMostrado(miembro) {
+    const ministerio = String(miembro?.ministerio || "").trim();
+    const ministerioNormalizado = normalizarMinisterioParaComparacion(ministerio);
+
+    if (ministerioNormalizado === "amigos") {
+        const sexo = String(miembro?.sexo || "")
+            .trim()
+            .toLocaleLowerCase();
+
+        if (sexo === "mujer") return "Amiga";
+        if (sexo === "hombre") return "Amigo";
+    }
+
+    return ministerio || "Sin ministerio";
+}
+
 function puedeAplicarAutomatizacionDeEdad() {
     // Solo los roles que actualmente administran/editan miembros
     // aplican esta automatización desde el navegador.
@@ -1212,10 +1228,7 @@ if (contadorTotal) {
 
                 <p>
                     ⛪
-                    ${escaparHTML(
-                        miembro.ministerio ||
-                        "Sin ministerio"
-                    )}
+                    ${escaparHTML(obtenerMinisterioMostrado(miembro))}
                 </p>
 
                 <p>
@@ -1910,7 +1923,7 @@ async function abrirDetallesMiembro(id) {
         contenido.innerHTML = `
             <div class="detalles-cabecera">
                 ${fotoHTML}
-                <div><h3 class="detalles-nombre">${escaparHTML(miembro.nombre || "")}</h3><p class="detalles-subtitulo">${escaparHTML(miembro.ministerio || "Sin ministerio")}</p></div>
+                <div><h3 class="detalles-nombre">${escaparHTML(miembro.nombre || "")}</h3><p class="detalles-subtitulo">${escaparHTML(obtenerMinisterioMostrado(miembro))}</p></div>
             </div>
             <div class="detalles-datos">
                 <div class="detalle-dato"><strong>Sexo</strong><span>${escaparHTML(miembro.sexo || "No registrado")}</span></div>
@@ -2289,10 +2302,7 @@ async function cargarListaAsistencia() {
                     </strong>
 
                     <small>
-                        ${escapeHTML(
-                            miembro.ministerio ||
-                            "Sin ministerio"
-                        )}
+                        ${escapeHTML(obtenerMinisterioMostrado(miembro))}
                     </small>
 
                     ${
@@ -2530,7 +2540,7 @@ function renderizarCumpleanosMiembros() {
             </div>
             <div class="cumpleanos-info">
                 <strong>🎂 ${escaparHTML(miembro.nombre || "Sin nombre")}</strong>
-                <span>${escaparHTML(miembro.ministerio || "Sin ministerio")}</span>
+                <span>${escaparHTML(obtenerMinisterioMostrado(miembro))}</span>
             </div>
         </div>
     `).join("");
@@ -2761,9 +2771,9 @@ async function cargarAlertasAsistencia() {
             const tarjeta = document.createElement("div");
             tarjeta.className = alerta.tipo === "semanas" ? "alerta-card alerta-roja" : "alerta-card alerta-naranja";
             if (alerta.tipo === "semanas") {
-                tarjeta.innerHTML = `<div class="alerta-icono">🔴</div><div class="alerta-contenido"><strong>2 semanas consecutivas sin asistir</strong><span>${escapeHTML(alerta.miembro.nombre || "Sin nombre")} · ${escapeHTML(alerta.miembro.ministerio || "Sin ministerio")}</span><small>Semanas: ${formatearFechaCorta(alerta.semanas.anterior.lunes)}–${formatearFechaCorta(alerta.semanas.anterior.domingo)} y ${formatearFechaCorta(alerta.semanas.actual.lunes)}–${formatearFechaCorta(alerta.semanas.actual.domingo)}</small></div>`;
+                tarjeta.innerHTML = `<div class="alerta-icono">🔴</div><div class="alerta-contenido"><strong>2 semanas consecutivas sin asistir</strong><span>${escapeHTML(alerta.miembro.nombre || "Sin nombre")} · ${escapeHTML(obtenerMinisterioMostrado(alerta.miembro))}</span><small>Semanas: ${formatearFechaCorta(alerta.semanas.anterior.lunes)}–${formatearFechaCorta(alerta.semanas.anterior.domingo)} y ${formatearFechaCorta(alerta.semanas.actual.lunes)}–${formatearFechaCorta(alerta.semanas.actual.domingo)}</small></div>`;
             } else {
-                tarjeta.innerHTML = `<div class="alerta-icono">🟠</div><div class="alerta-contenido"><strong>${alerta.ausenciasMes} ausencias en día habitual este mes</strong><span>${escapeHTML(alerta.miembro.nombre || "Sin nombre")} · ${escapeHTML(alerta.miembro.ministerio || "Sin ministerio")}</span></div>`;
+                tarjeta.innerHTML = `<div class="alerta-icono">🟠</div><div class="alerta-contenido"><strong>${alerta.ausenciasMes} ausencias en día habitual este mes</strong><span>${escapeHTML(alerta.miembro.nombre || "Sin nombre")} · ${escapeHTML(obtenerMinisterioMostrado(alerta.miembro))}</span></div>`;
             }
             listaAlertasAsistencia.appendChild(tarjeta);
         });
@@ -3083,7 +3093,7 @@ async function cargarReporte() {
                 <div class="reporte-info">
                     <h3>${escaparHTML(miembro.nombre || "")}</h3>
                     <p>📞 ${escaparHTML(miembro.telefono || "Sin teléfono")}</p>
-                    <p>⛪ ${escaparHTML(miembro.ministerio || "Sin ministerio")}</p>
+                    <p>⛪ ${escaparHTML(obtenerMinisterioMostrado(miembro))}</p>
                     <p>📅 ${escaparHTML(obtenerDias(miembro) || "Sin días registrados")}</p>
                 </div>
                 <div class="reporte-estadistica">
