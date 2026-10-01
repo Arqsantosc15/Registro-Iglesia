@@ -169,6 +169,34 @@
                 >
             </div>
 
+            <div class="campo">
+                <label for="domicilio">Dónde vive</label>
+                <input
+                    type="text"
+                    id="domicilio"
+                    placeholder="Ej. Santo Domingo Oeste"
+                >
+                <small>Opcional</small>
+            </div>
+
+<div class="campo">
+    <label for="fecha_nacimiento">Fecha de nacimiento</label>
+
+    <input
+        type="date"
+        id="fecha_nacimiento"
+    >
+</div>
+
+<div class="campo">
+    <label for="sexo">Sexo</label>
+
+    <select id="sexo">
+        <option value="">Seleccione</option>
+        <option value="Hombre">Hombre</option>
+        <option value="Mujer">Mujer</option>
+    </select>
+</div>
 
             <div class="campo">
                 <label for="ministerio">Ministerio</label>
@@ -496,6 +524,89 @@
     </div>
 
 </section>
+
+<!-- ==========================================
+     ALERTAS DE ASISTENCIA — ADMINISTRADOR
+========================================== -->
+<section class="alertas-asistencia" id="seccionAlertasAsistencia">
+    <div class="alertas-asistencia-contenedor">
+        <div class="alertas-asistencia-titulo">
+            <div>
+                <h2>🔔 Alertas de asistencia</h2>
+                <p class="subtitulo-alertas">Detecta ausencias según los días habituales del miembro.</p>
+            </div>
+            <button type="button" id="btnActualizarAlertasAsistencia" class="btn-alertas">
+                🔄 Actualizar
+            </button>
+        </div>
+
+        <div id="resumenAlertasAsistencia" class="resumen-alertas">
+            <span class="alerta-contador">0</span>
+            <span>Alertas activas</span>
+        </div>
+
+        <div id="listaAlertasAsistencia" class="lista-alertas">
+            <p class="mensaje">Cargando alertas...</p>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================
+     CUMPLEAÑOS DE LOS MIEMBROS
+========================================== -->
+<section class="cumpleanos-miembros" id="seccionCumpleanosMiembros">
+    <div class="cumpleanos-contenedor">
+        <div class="cumpleanos-titulo">
+            <div>
+                <h2>🎂 Cumpleaños de los miembros</h2>
+                <p class="subtitulo-cumpleanos">Consulta quién cumple años en cada mes.</p>
+            </div>
+            <div class="cumpleanos-selector">
+                <label for="mesCumpleanos">Seleccionar mes</label>
+                <select id="mesCumpleanos">
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="resumenCumpleanos" class="resumen-cumpleanos">
+            0 cumpleaños este mes
+        </div>
+
+        <div id="listaCumpleanos" class="lista-cumpleanos">
+            <p class="mensaje">Cargando cumpleaños...</p>
+        </div>
+    </div>
+</section>
+
+<!-- ==========================================
+     MODAL DETALLES DEL MIEMBRO
+========================================== -->
+
+<div id="modalDetalles" class="modal">
+    <div class="modal-contenido modal-detalles-contenido">
+        <div class="modal-header">
+            <h2>👁️ Detalles del miembro</h2>
+            <button type="button" id="btnCerrarDetalles" class="btn-cerrar">✕</button>
+        </div>
+
+        <div id="contenidoDetallesMiembro">
+            <p class="mensaje">Cargando detalles...</p>
+        </div>
+    </div>
+</div>
+
 <!-- ==========================================
      MODAL EDITAR MIEMBRO
 ========================================== -->
@@ -551,6 +662,49 @@
                     id="editarTelefono"
                     placeholder="Ej. 809-555-1234"
                 >
+
+            </div>
+
+            <div class="campo">
+
+                <label for="editarDomicilio">
+                    Dónde vive
+                </label>
+
+                <input
+                    type="text"
+                    id="editarDomicilio"
+                    placeholder="Ej. Santo Domingo Oeste"
+                >
+
+                <small>Opcional</small>
+
+            </div>
+
+            <div class="campo">
+
+                <label for="editarFechaNacimiento">
+                    Fecha de nacimiento
+                </label>
+
+                <input
+                    type="date"
+                    id="editarFechaNacimiento"
+                >
+
+            </div>
+
+            <div class="campo">
+
+                <label for="editarSexo">
+                    Sexo
+                </label>
+
+                <select id="editarSexo">
+                    <option value="">Seleccione</option>
+                    <option value="Hombre">Hombre</option>
+                    <option value="Mujer">Mujer</option>
+                </select>
 
             </div>
 
