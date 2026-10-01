@@ -2736,3 +2736,892 @@ main {
         width: 100% !important;
     }
 }
+
+
+/* ==========================================================
+   DETALLES DEL MIEMBRO
+   ========================================================== */
+.btn-detalles {
+    border: 1px solid #c7d1da;
+    background: #fff;
+    color: #1f527f;
+    border-radius: 4px;
+    padding: 4px 7px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.btn-detalles:hover {
+    background: #edf4f9;
+}
+
+.miembro-acciones {
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.modal-detalles-contenido {
+    max-height: calc(100vh - 60px);
+    overflow-y: auto;
+}
+
+.detalles-cabecera {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #dce4ea;
+}
+
+.detalles-foto {
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #1f527f;
+    background: #edf2f6;
+}
+
+.detalles-nombre {
+    margin: 0 0 5px;
+    color: #1f527f;
+    font-size: 20px;
+}
+
+.detalles-subtitulo {
+    margin: 0;
+    color: #667987;
+    font-size: 13px;
+}
+
+.detalles-datos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.detalle-dato {
+    padding: 10px 12px;
+    background: #f7f9fb;
+    border: 1px solid #dce4ea;
+    border-radius: 7px;
+}
+
+.detalle-dato strong {
+    display: block;
+    margin-bottom: 3px;
+    color: #4b6170;
+    font-size: 11px;
+}
+
+.detalle-dato span {
+    color: #1f3342;
+    font-size: 13px;
+    word-break: break-word;
+}
+
+.detalles-seccion {
+    margin-top: 18px;
+}
+
+.detalles-seccion h3 {
+    margin: 0 0 10px;
+    color: #1f527f;
+    font-size: 15px;
+}
+
+.detalles-asistencia-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.detalle-periodo {
+    padding: 10px;
+    background: #f7f9fb;
+    border: 1px solid #dce4ea;
+    border-radius: 7px;
+    text-align: center;
+}
+
+.detalle-periodo .numero {
+    display: block;
+    color: #1f527f;
+    font-size: 21px;
+    font-weight: 700;
+}
+
+.detalle-periodo .texto {
+    color: #667987;
+    font-size: 11px;
+}
+
+.detalles-registros {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: #425767;
+    font-size: 12px;
+}
+
+.detalles-registros li {
+    margin: 4px 0;
+}
+
+.condicion-medica-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    background: #f7f9fb;
+    border: 1px solid #dce4ea;
+    border-left: 4px solid #1f527f;
+    border-radius: 6px;
+}
+
+.condicion-medica-editor label {
+    font-weight: 700;
+    color: #4b6170;
+    font-size: 12px;
+}
+
+.condicion-medica-editor textarea {
+    width: 100%;
+    min-height: 78px;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 9px 10px;
+    border: 1px solid #cbd7df;
+    border-radius: 6px;
+    font: inherit;
+    color: #273e4e;
+    background: #fff;
+}
+
+.btn-guardar-condicion-medica {
+    align-self: flex-start;
+    border: 0;
+    border-radius: 6px;
+    padding: 9px 14px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.btn-guardar-condicion-medica:disabled {
+    cursor: wait;
+    opacity: .65;
+}
+
+.condicion-medica-editor small {
+    color: #667987;
+    font-size: 11px;
+}
+
+.detalles-privado {
+    border-left: 4px solid #1f527f;
+    background: #f7f9fb;
+    padding: 12px 14px;
+    border-radius: 6px;
+    color: #273e4e;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 700px) {
+    .detalles-cabecera {
+        grid-template-columns: 64px minmax(0, 1fr);
+    }
+    .detalles-foto {
+        width: 64px;
+        height: 64px;
+    }
+    .detalles-nombre {
+        font-size: 17px;
+    }
+    .detalles-datos {
+        grid-template-columns: 1fr;
+    }
+    .detalles-asistencia-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* ==========================================
+   PASO 8B — ALERTAS DE ASISTENCIA
+========================================== */
+.alertas-asistencia {
+    width: 100%;
+    margin: 24px 0;
+}
+.alertas-asistencia-contenedor {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #d9e1e8;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+.alertas-asistencia-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.alertas-asistencia-titulo h2 { margin: 0; }
+.subtitulo-alertas { margin: 5px 0 0; }
+.btn-alertas {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.btn-alertas:disabled { opacity: 0.65; cursor: wait; }
+.resumen-alertas {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+.alerta-contador {
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #eef2f5;
+}
+.lista-alertas { display: grid; gap: 10px; }
+.alerta-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #e1e6eb;
+}
+.alerta-roja { border-left: 5px solid #b42318; }
+.alerta-naranja { border-left: 5px solid #b54708; }
+.alerta-icono { font-size: 22px; line-height: 1; }
+.alerta-contenido { display: flex; flex-direction: column; gap: 4px; }
+.alerta-contenido strong { font-size: 15px; }
+.alerta-contenido small { opacity: 0.8; }
+.alerta-sin-datos {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #d9e1e8;
+}
+@media (max-width: 700px) {
+    .alertas-asistencia-titulo { align-items: stretch; flex-direction: column; }
+    .btn-alertas { width: 100%; }
+}
+
+/* ==========================================================
+   PASO 8B — ALERTAS: MISMO ANCHO QUE ASISTENCIA Y REPORTE
+   Responsive para teléfono/tableta vertical y horizontal.
+   No modifica la visualización de PC fuera de este bloque.
+   ========================================================== */
+
+#seccionAlertasAsistencia,
+.alertas-asistencia {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#seccionAlertasAsistencia .alertas-asistencia-contenedor,
+.alertas-asistencia .alertas-asistencia-contenedor {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#seccionAlertasAsistencia .alertas-asistencia-titulo,
+.alertas-asistencia .alertas-asistencia-titulo {
+    min-width: 0;
+}
+
+#seccionAlertasAsistencia .lista-alertas,
+.alertas-asistencia .lista-alertas {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#seccionAlertasAsistencia .alerta-card,
+.alertas-asistencia .alerta-card {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#seccionAlertasAsistencia .alerta-contenido,
+.alertas-asistencia .alerta-contenido {
+    min-width: 0 !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+/* Tablet y teléfono: una sola columna principal. */
+@media screen and (max-width: 900px) {
+    #seccionAlertasAsistencia,
+    .alertas-asistencia {
+        grid-column: 1 !important;
+    }
+
+    #seccionAlertasAsistencia .alertas-asistencia-contenedor,
+    .alertas-asistencia .alertas-asistencia-contenedor {
+        padding: 18px !important;
+    }
+}
+
+/* Teléfono/tableta en VERTICAL: todo apilado y legible. */
+@media screen and (max-width: 900px) and (orientation: portrait) {
+    #seccionAlertasAsistencia .alertas-asistencia-titulo,
+    .alertas-asistencia .alertas-asistencia-titulo {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    #seccionAlertasAsistencia .btn-alertas,
+    .alertas-asistencia .btn-alertas {
+        width: 100% !important;
+    }
+
+    #seccionAlertasAsistencia .lista-alertas,
+    .alertas-asistencia .lista-alertas {
+        grid-template-columns: 1fr !important;
+    }
+
+    #seccionAlertasAsistencia .alerta-card,
+    .alertas-asistencia .alerta-card {
+        width: 100% !important;
+    }
+}
+
+/* Teléfono/tableta en HORIZONTAL: se aprovecha el ancho disponible. */
+@media screen and (max-width: 900px) and (orientation: landscape) {
+    #seccionAlertasAsistencia .alertas-asistencia-titulo,
+    .alertas-asistencia .alertas-asistencia-titulo {
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+    #seccionAlertasAsistencia .btn-alertas,
+    .alertas-asistencia .btn-alertas {
+        width: auto !important;
+        flex: 0 0 auto !important;
+    }
+
+    #seccionAlertasAsistencia .lista-alertas,
+    .alertas-asistencia .lista-alertas {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    #seccionAlertasAsistencia .alerta-card,
+    .alertas-asistencia .alerta-card {
+        width: 100% !important;
+    }
+}
+
+/* Teléfonos muy estrechos: mantener una sola columna. */
+@media screen and (max-width: 680px) {
+    #seccionAlertasAsistencia .alertas-asistencia-contenedor,
+    .alertas-asistencia .alertas-asistencia-contenedor {
+        padding: 14px !important;
+    }
+
+    #seccionAlertasAsistencia .alertas-asistencia-titulo,
+    .alertas-asistencia .alertas-asistencia-titulo {
+        gap: 10px !important;
+    }
+
+    #seccionAlertasAsistencia .lista-alertas,
+    .alertas-asistencia .lista-alertas {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ==========================================================
+   CORRECCIÓN - NUEVO MIEMBRO: NO OCULTAR CONTENIDO
+   ==========================================================
+   El panel mantiene su altura para no alterar la distribución
+   de escritorio, pero cuando el formulario crece se puede
+   desplazar internamente para mostrar todos los campos y el
+   botón Guardar. Esto también corrige teléfono horizontal.
+*/
+#seccionNuevoMiembro {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    scrollbar-width: auto;
+    scrollbar-color: #1f527f #e9eef3;
+}
+
+#seccionNuevoMiembro form {
+    min-width: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#seccionNuevoMiembro input,
+#seccionNuevoMiembro select,
+#seccionNuevoMiembro button,
+#seccionNuevoMiembro .campo,
+#seccionNuevoMiembro .dias {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* En vertical el panel ya puede crecer con el contenido. */
+@media (max-width: 680px) {
+    #seccionNuevoMiembro {
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+    }
+}
+
+
+/* ==========================================================
+   AJUSTE 9B - CAMPOS COMPACTOS SIN HACERLOS EXCESIVAMENTE PEQUEÑOS
+   PC: ancho moderado.
+   Teléfono/tableta: ancho compacto propio, sin volver a 100%.
+   La sección general conserva su ancho original.
+   ========================================================== */
+
+#seccionControlAsistencia .filtros-asistencia .campo-asistencia,
+#seccionAsistencia .filtros-asistencia .campo-asistencia,
+.asistencia .filtros-asistencia .campo-asistencia,
+.seccion-asistencia .filtros-asistencia .campo-asistencia {
+    width: 340px !important;
+    max-width: 100% !important;
+    justify-self: start !important;
+}
+
+#seccionControlAsistencia .filtros-asistencia .campo-asistencia input,
+#seccionControlAsistencia .filtros-asistencia .campo-asistencia select,
+#seccionAsistencia .filtros-asistencia .campo-asistencia input,
+#seccionAsistencia .filtros-asistencia .campo-asistencia select,
+.asistencia .filtros-asistencia .campo-asistencia input,
+.asistencia .filtros-asistencia .campo-asistencia select,
+.seccion-asistencia .filtros-asistencia .campo-asistencia input,
+.seccion-asistencia .filtros-asistencia .campo-asistencia select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#seccionReporte .reporte-config-multi .campo,
+.reporte .reporte-config-multi .campo {
+    width: 340px !important;
+    max-width: 100% !important;
+    justify-self: start !important;
+}
+
+#seccionReporte .reporte-config-multi .campo input,
+#seccionReporte .reporte-config-multi .campo select,
+.reporte .reporte-config-multi .campo input,
+.reporte .reporte-config-multi .campo select {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Tableta y teléfono: réduire réellement les champs sans toucher
+   au reste de la largeur du panneau. */
+@media screen and (max-width: 900px) {
+    #seccionControlAsistencia .filtros-asistencia .campo-asistencia,
+    #seccionAsistencia .filtros-asistencia .campo-asistencia,
+    .asistencia .filtros-asistencia .campo-asistencia,
+    .seccion-asistencia .filtros-asistencia .campo-asistencia,
+    #seccionReporte .reporte-config-multi .campo,
+    .reporte .reporte-config-multi .campo {
+        width: 300px !important;
+        max-width: 100% !important;
+    }
+}
+
+@media screen and (max-width: 680px) {
+    #seccionControlAsistencia .filtros-asistencia .campo-asistencia,
+    #seccionAsistencia .filtros-asistencia .campo-asistencia,
+    .asistencia .filtros-asistencia .campo-asistencia,
+    .seccion-asistencia .filtros-asistencia .campo-asistencia,
+    #seccionReporte .reporte-config-multi .campo,
+    .reporte .reporte-config-multi .campo {
+        width: 280px !important;
+        max-width: calc(100vw - 48px) !important;
+        justify-self: start !important;
+    }
+}
+
+/* ==========================================================
+   ALERTAS - RESTAURAR BARRA DE DESPLAZAMIENTO INTERNA
+   ========================================================== */
+#seccionAlertasAsistencia .lista-alertas,
+.alertas-asistencia .lista-alertas {
+    max-height: 360px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 8px !important;
+    scrollbar-gutter: stable !important;
+    scrollbar-width: auto !important;
+    scrollbar-color: #1f527f #e9eef3 !important;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar {
+    width: 10px;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar-track,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar-track {
+    background: #e9eef3;
+    border-radius: 10px;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar-thumb,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar-thumb {
+    background: #1f527f;
+    border-radius: 10px;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar-thumb:hover,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar-thumb:hover {
+    background: #163a5c;
+}
+
+/* ==========================================================
+   PASO 10 — DISEÑO DEFINITIVO CONTROL + REPORTE
+   Referencia: PC + teléfono horizontal + teléfono vertical
+   ========================================================== */
+
+/* CONTROL DE ASISTENCIA
+   PC y teléfono horizontal: dos columnas iguales.
+   Los campos ocupan el ancho de su columna, como en la referencia.
+*/
+#seccionControlAsistencia .filtros-asistencia,
+#seccionAsistencia .filtros-asistencia,
+.asistencia .filtros-asistencia,
+.seccion-asistencia .filtros-asistencia {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 12px 18px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+#seccionControlAsistencia .filtros-asistencia .campo-asistencia,
+#seccionAsistencia .filtros-asistencia .campo-asistencia,
+.asistencia .filtros-asistencia .campo-asistencia,
+.seccion-asistencia .filtros-asistencia .campo-asistencia {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+}
+
+#seccionControlAsistencia .filtros-asistencia .campo-asistencia input,
+#seccionControlAsistencia .filtros-asistencia .campo-asistencia select,
+#seccionAsistencia .filtros-asistencia .campo-asistencia input,
+#seccionAsistencia .filtros-asistencia .campo-asistencia select,
+.asistencia .filtros-asistencia .campo-asistencia input,
+.asistencia .filtros-asistencia .campo-asistencia select,
+.seccion-asistencia .filtros-asistencia .campo-asistencia input,
+.seccion-asistencia .filtros-asistencia .campo-asistencia select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* REPORTE DE ASISTENCIA
+   Mismos parámetros de distribución:
+   - PC/horizontal: dos columnas iguales.
+   - vertical: una columna.
+   - Ver reporte: ancho completo debajo de los controles.
+*/
+#seccionReporte .reporte-config-multi,
+.reporte .reporte-config-multi {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 12px 18px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+    align-items: end !important;
+}
+
+#seccionReporte .reporte-config-multi .campo,
+.reporte .reporte-config-multi .campo {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    justify-self: stretch !important;
+    box-sizing: border-box !important;
+}
+
+#seccionReporte .reporte-config-multi .campo input,
+#seccionReporte .reporte-config-multi .campo select,
+.reporte .reporte-config-multi .campo input,
+.reporte .reporte-config-multi .campo select {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+#seccionReporte .reporte-config-multi .btn-reporte,
+.reporte .reporte-config-multi .btn-reporte {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* TELÉFONO VERTICAL
+   Fecha/Servicio uno debajo del otro y a todo el ancho interno.
+   Reporte usa la misma lógica.
+*/
+@media screen and (max-width: 680px) and (orientation: portrait) {
+    #seccionControlAsistencia .filtros-asistencia,
+    #seccionAsistencia .filtros-asistencia,
+    .asistencia .filtros-asistencia,
+    .seccion-asistencia .filtros-asistencia {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    #seccionControlAsistencia .filtros-asistencia .campo-asistencia,
+    #seccionAsistencia .filtros-asistencia .campo-asistencia,
+    .asistencia .filtros-asistencia .campo-asistencia,
+    .seccion-asistencia .filtros-asistencia .campo-asistencia {
+        width: 100% !important;
+        max-width: none !important;
+        justify-self: stretch !important;
+    }
+
+    #seccionReporte .reporte-config-multi,
+    .reporte .reporte-config-multi {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    #seccionReporte .reporte-config-multi .campo,
+    .reporte .reporte-config-multi .campo {
+        width: 100% !important;
+        max-width: none !important;
+        justify-self: stretch !important;
+    }
+
+    #seccionReporte .reporte-config-multi .btn-reporte,
+    .reporte .reporte-config-multi .btn-reporte {
+        grid-column: 1 / -1 !important;
+    }
+}
+
+/* ALERTAS: conservar la barra de desplazamiento interna */
+#seccionAlertasAsistencia .lista-alertas,
+.alertas-asistencia .lista-alertas {
+    max-height: 360px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: stable !important;
+    scrollbar-width: auto !important;
+    scrollbar-color: #1f527f #e9eef3 !important;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar {
+    width: 10px !important;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar-track,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar-track {
+    background: #e9eef3 !important;
+    border-radius: 10px !important;
+}
+
+#seccionAlertasAsistencia .lista-alertas::-webkit-scrollbar-thumb,
+.alertas-asistencia .lista-alertas::-webkit-scrollbar-thumb {
+    background: #1f527f !important;
+    border-radius: 10px !important;
+}
+
+
+/* ==========================================================
+   PASO 15 — CUMPLEAÑOS DE LOS MIEMBROS
+   ========================================================== */
+.cumpleanos-miembros {
+    width: 100%;
+    margin: 24px 0;
+    grid-column: 1 / -1 !important;
+}
+
+.cumpleanos-contenedor {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #d9e1e8;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+}
+
+.cumpleanos-titulo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.cumpleanos-titulo h2 {
+    margin: 0;
+}
+
+.subtitulo-cumpleanos {
+    margin: 5px 0 0;
+}
+
+.cumpleanos-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 210px;
+}
+
+.cumpleanos-selector label {
+    font-weight: 600;
+}
+
+.cumpleanos-selector select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.resumen-cumpleanos {
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+.lista-cumpleanos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.cumpleanos-card {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid #e1e6eb;
+    border-radius: 10px;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.cumpleanos-dia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+    border-radius: 10px;
+    background: #f3f5f7;
+    text-align: center;
+}
+
+.cumpleanos-dia-numero {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.cumpleanos-dia-texto {
+    margin-top: 4px;
+    font-size: 11px;
+}
+
+.cumpleanos-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.cumpleanos-info strong,
+.cumpleanos-info span {
+    overflow-wrap: anywhere;
+}
+
+.cumpleanos-sin-datos {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #d9e1e8;
+}
+
+@media (max-width: 700px) {
+    .cumpleanos-titulo {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .cumpleanos-selector {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .lista-cumpleanos {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ==========================================================
+   PASO 15 - BARRA DE DESPLAZAMIENTO EN CUMPLEAÑOS
+   ========================================================== */
+.lista-cumpleanos {
+    max-height: 360px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+    scrollbar-width: auto;
+    scrollbar-color: #1f527f #e9eef3;
+}
+
+.lista-cumpleanos::-webkit-scrollbar {
+    width: 12px;
+}
+
+.lista-cumpleanos::-webkit-scrollbar-track {
+    background: #e9eef3;
+    border-radius: 10px;
+}
+
+.lista-cumpleanos::-webkit-scrollbar-thumb {
+    background: #1f527f;
+    border-radius: 10px;
+    border: 2px solid #e9eef3;
+}
+
+.lista-cumpleanos::-webkit-scrollbar-thumb:hover {
+    background: #174364;
+}
